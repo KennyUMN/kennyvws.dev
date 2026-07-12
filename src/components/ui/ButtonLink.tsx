@@ -20,7 +20,7 @@ export function ButtonLink({
       className={cn(
         "inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[15px] font-medium transition-[transform,background-color,color,box-shadow] duration-200 active:scale-[0.98]",
         variant === "primary" &&
-          "bg-accent text-white shadow-soft hover:opacity-90",
+          "bg-accent text-accent-contrast shadow-soft hover:opacity-90",
         variant === "quiet" &&
           "border border-edge bg-raised text-ink shadow-soft hover:bg-surface-muted",
         className

@@ -27,7 +27,7 @@ export function Hero() {
         animate="show"
         className="mx-auto w-full max-w-5xl"
       >
-        <motion.p variants={item}>
+        <motion.p data-reveal variants={item}>
           <span className="inline-flex items-center gap-2 rounded-full border border-edge bg-raised px-3.5 py-1.5 text-sm text-ink-muted shadow-soft">
             <span aria-hidden className="size-2 rounded-full bg-accent" />
             Open to AI Engineer roles
@@ -35,6 +35,7 @@ export function Hero() {
         </motion.p>
 
         <motion.p
+          data-reveal
           variants={item}
           className="mt-10 text-sm font-semibold text-accent"
         >
@@ -42,6 +43,7 @@ export function Hero() {
         </motion.p>
 
         <motion.h1
+          data-reveal
           variants={item}
           className="mt-4 max-w-3xl text-balance text-[clamp(2.5rem,1.3rem+5.5vw,4.75rem)] font-semibold leading-[1.04] tracking-tight"
         >
@@ -49,6 +51,7 @@ export function Hero() {
         </motion.h1>
 
         <motion.p
+          data-reveal
           variants={item}
           className="mt-6 max-w-xl text-lg leading-relaxed text-ink-muted"
         >
@@ -56,7 +59,7 @@ export function Hero() {
           server that keeps it running.
         </motion.p>
 
-        <motion.div variants={item} className="mt-9 flex flex-wrap gap-3">
+        <motion.div data-reveal variants={item} className="mt-9 flex flex-wrap gap-3">
           <ButtonLink href="#work">See projects</ButtonLink>
           <ButtonLink href={site.socials.github} variant="quiet" external>
             GitHub <span aria-hidden>↗</span>
@@ -64,6 +67,7 @@ export function Hero() {
         </motion.div>
 
         <motion.dl
+          data-reveal
           variants={item}
           className="mt-16 grid grid-cols-2 gap-x-8 gap-y-6 border-t border-edge pt-8 lg:grid-cols-4"
         >

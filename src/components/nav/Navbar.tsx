@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { navItems, sectionIds } from "@/data/nav";
 import { site } from "@/data/site";
@@ -12,6 +12,7 @@ export function Navbar() {
   const active = useActiveSection(sectionIds);
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -30,7 +31,11 @@ export function Navbar() {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+        // Return focus to the toggle so keyboard users don't fall to <body>.
+        menuButtonRef.current?.focus();
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -92,6 +97,7 @@ export function Navbar() {
           <div className="flex items-center gap-1 md:hidden">
             <ThemeToggle />
             <button
+              ref={menuButtonRef}
               type="button"
               aria-expanded={open}
               aria-controls="mobile-menu"

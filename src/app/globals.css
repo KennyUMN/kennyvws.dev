@@ -10,6 +10,7 @@
   --ink-muted: #5d5d66;
   --edge: #e4e4e8;
   --accent: #0066cc;
+  --accent-contrast: #ffffff;
   --shadow-soft: 0 1px 2px rgb(17 17 19 / 0.04), 0 8px 24px rgb(17 17 19 / 0.05);
   --shadow-lifted: 0 2px 4px rgb(17 17 19 / 0.05), 0 16px 40px rgb(17 17 19 / 0.09);
 }
@@ -22,6 +23,7 @@
   --ink-muted: #a3a3ad;
   --edge: #26262b;
   --accent: #409cff;
+  --accent-contrast: #0a0a0b;
   --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.35);
   --shadow-lifted: 0 2px 4px rgb(0 0 0 / 0.5), 0 16px 40px rgb(0 0 0 / 0.5);
 }
@@ -34,6 +36,7 @@
   --color-ink-muted: var(--ink-muted);
   --color-edge: var(--edge);
   --color-accent: var(--accent);
+  --color-accent-contrast: var(--accent-contrast);
   --shadow-soft: var(--shadow-soft);
   --shadow-lifted: var(--shadow-lifted);
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
@@ -47,11 +50,18 @@ html {
   html {
     scroll-behavior: auto;
   }
+
+  /* Entrance reveals become opacity-only. MotionConfig reducedMotion="user"
+     already stops transform *animation*, but the initial y-offset is inlined
+     into the server-rendered HTML — override it so nothing sits translated. */
+  [data-reveal] {
+    transform: none !important;
+  }
 }
 
 ::selection {
   background: var(--accent);
-  color: #ffffff;
+  color: var(--accent-contrast);
 }
 
 :focus-visible {
