@@ -13,6 +13,7 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -30,11 +31,39 @@ export function Navbar() {
 
   useEffect(() => {
     if (!open) return;
+    // Move focus into the sheet so keyboard users land on the first link.
+    const firstLink =
+      headerRef.current?.querySelector<HTMLElement>("#mobile-menu a");
+    firstLink?.focus();
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const getFocusable = () =>
+      Array.from(
+        headerRef.current?.querySelectorAll<HTMLElement>(
+          "a[href], button:not([disabled])"
+        ) ?? []
+      ).filter((el) => el.offsetParent !== null);
+
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setOpen(false);
         // Return focus to the toggle so keyboard users don't fall to <body>.
         menuButtonRef.current?.focus();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const focusable = getFocusable();
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
       }
     };
     window.addEventListener("keydown", onKey);
@@ -44,7 +73,7 @@ export function Navbar() {
   const glass = scrolled || open;
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50">
+    <header ref={headerRef} className="fixed inset-x-0 top-0 z-50">
       <div
         className={cn(
           "border-b transition-colors duration-300",
