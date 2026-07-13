@@ -68,3 +68,63 @@ html {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+
+/* Colorless link language: motion, not color, signals interactivity.
+   Place .link-draw on the text span inside a padded anchor so the
+   underline hugs the label, not the hit area. */
+.link-draw {
+  position: relative;
+}
+
+.link-draw::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: -2px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right; /* un-hover exits toward the right */
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:where(
+    .link-draw:hover,
+    .link-draw:focus-visible,
+    a:hover > .link-draw,
+    a:focus-visible > .link-draw
+  )::after {
+  transform: scaleX(1);
+  transform-origin: left; /* draws in from the left */
+}
+
+.link-active::after {
+  transform: scaleX(1);
+}
+
+/* At-rest hairline so above-the-fold CTAs read as links before any hover. */
+.link-rest {
+  border-bottom: 1px solid color-mix(in srgb, currentColor 35%, transparent);
+  padding-bottom: 2px;
+}
+
+.link-rest::after {
+  bottom: -1px; /* draw over the resting hairline */
+}
+
+/* Signature term affordance — only where hover exists. */
+@media (hover: hover) and (pointer: fine) {
+  .term-trigger {
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-decoration-thickness: 1px;
+    text-decoration-color: color-mix(in srgb, var(--ink-muted) 70%, transparent);
+    text-underline-offset: 0.25em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .link-draw::after {
+    transition: none; /* underline toggles instantly */
+  }
+}

@@ -117,20 +117,20 @@ export function Navbar() {
                 href={item.href}
                 aria-current={active === item.id ? "true" : undefined}
                 className={cn(
-                  "rounded-full px-3.5 py-1.5 text-sm transition-colors",
-                  active === item.id
-                    ? "bg-surface-muted font-medium text-ink"
-                    : "text-ink-muted hover:text-ink"
+                  "px-3 py-1.5 text-sm transition-colors",
+                  active === item.id ? "text-ink" : "text-ink-muted hover:text-ink"
                 )}
               >
-                {item.label}
+                <span className={cn("link-draw", active === item.id && "link-active")}>
+                  {item.label}
+                </span>
               </a>
             ))}
             <a
               href={site.resume}
-              className="ml-1 rounded-full px-3.5 py-1.5 text-sm text-ink-muted transition-colors hover:text-ink"
+              className="ml-1 px-3 py-1.5 text-sm text-ink-muted transition-colors hover:text-ink"
             >
-              Resume
+              <span className="link-draw">Resume</span>
             </a>
             <div className="ml-1">
               <ThemeToggle />
