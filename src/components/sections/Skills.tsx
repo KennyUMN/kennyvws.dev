@@ -10,11 +10,11 @@ export function Skills() {
           <Reveal key={group.category} delay={i * 0.06}>
             <div className="border-t border-edge pt-6">
               <h3 className="text-[15px] font-semibold">{group.category}</h3>
-              <ul className="mt-4 flex flex-wrap gap-2">
+              <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-2">
                 {group.items.map(({ name, icon: Icon }) => (
                   <li
                     key={name}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-surface-muted px-3 py-1.5 text-sm text-ink-muted"
+                    className="inline-flex items-center gap-1.5 text-[15px] text-ink-muted"
                   >
                     {Icon && <Icon aria-hidden className="size-3.5" />}
                     {name}
