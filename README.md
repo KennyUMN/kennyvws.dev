@@ -1,7 +1,9 @@
 # kennyvws.dev
 
 Personal portfolio — single page, Next.js App Router, Tailwind CSS v4,
-Motion, next-themes. Design direction: Apple-HIG-inspired "Quiet Precision".
+Motion, next-themes. Design direction: Apple-HIG-inspired "Quiet Precision",
+evolved with a rauno.me-inspired interaction philosophy — single-sentence hero,
+colorless motion-affordance links, cursor-proximate term previews, one accent moment.
 
 ## Develop
 
