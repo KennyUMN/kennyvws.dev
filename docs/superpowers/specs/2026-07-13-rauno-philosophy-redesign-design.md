@@ -36,6 +36,9 @@ metadata DRY). Implementation builds on top of that diff; it is kept, not revert
 | Accent usage | One accent moment: the Contact email CTA keeps the filled accent pill. Accent otherwise only in status dot, focus rings, `::selection` |
 | Signature interaction | Term previews: dotted-underlined inline terms reveal a small context card near the cursor |
 | Closing statement | "Clean the data. Fight the training run. Ship the server." |
+| H1 punctuation | Colon form of the pitch (already in the working-tree pass). A period would split it into two sentences — the headline/subhead split reinvented inside one block. One sentence, spoken once |
+| Above-the-fold affordance | Full text-link restraint — no filled element above the fold. Affordance is carried by an at-rest underline on the hero CTAs, a `text-lg` size bump, the arrow glyphs, and "Work" in the nav. Keeps the one-accent-moment decision intact |
+| Featured curation | `featured` flag **kept** — drives a title scale bump inside the flat list (order-first placement + `text-2xl` vs `text-xl`), preserving the curation signal without cards |
 
 ## Design
 
@@ -44,25 +47,45 @@ metadata DRY). Implementation builds on top of that diff; it is kept, not revert
 - Delete the H1 + sub-copy split. The H1 becomes the full pitch verbatim:
   *"I build machine learning systems end to end: computer vision and LLM tooling, from the
   training loop to the server that keeps it running."*
+  The colon form (already in the working-tree pass) is the deliberate display punctuation —
+  see the decisions table. Do not reintroduce the em dash, and do not split it with a period.
 - Size `clamp(1.9rem, 1rem + 3vw, 3.25rem)`, `leading-[1.15]`, `tracking-tight`,
   `max-w-4xl`, `text-balance` — 3–4 confident lines, semibold.
 - Status pill loses border/background/shadow: plain small text, blue dot + "Open to AI
   Engineer roles".
-- CTAs become body-colored text links with the underline-draw treatment:
-  "See projects →" (→ `#work`) and "GitHub ↗". `ButtonLink` is no longer imported here.
+- CTAs become body-colored text links: "See projects →" (→ `#work`) and "GitHub ↗".
+  `ButtonLink` is no longer imported here. Because nothing filled exists above the fold
+  (decided — see table), these two carry the skimmer's next step and get extra affordance:
+  - `text-lg font-medium`, generous spacing below the H1.
+  - **At-rest underline**: a steady, slightly muted hairline visible before any hover, so
+    they read as links immediately. Hover/focus draws the full-strength underline over it
+    (same draw vocabulary as everywhere else).
+  - Invisible padding to a ≥44px hit area on coarse pointers (no button chrome implies the
+    target anymore).
 - Three hero terms carry the signature preview (see §3).
 
 ### 2. Site-wide link language (colorless + underline-draw)
 
 - One CSS utility (in `globals.css`, e.g. `.link-draw`): `position: relative`; 1px
-  `::after` bar in `currentColor`; `transform: scaleX(0)` → `scaleX(1)` on hover/focus;
+  `::after` bar in `currentColor`; `transform: scaleX(0)` → `scaleX(1)`;
   `transform-origin` left on enter, right on leave (origin switch via `:not(:hover)`);
   ~200ms expo-out. Compositor-only (transform).
+- **Parity constraints:** the draw triggers on `:focus-visible` exactly as on `:hover`
+  (keyboard users get the same affordance), and under `prefers-reduced-motion` the underline
+  toggles instantly — no draw animation.
 - Applied to: desktop nav items, hero CTAs, project entry links, Contact social links,
   footer "Back to top".
-- Nav active state: remove the `bg-surface-muted` pill. Active = `text-ink` + persistent
-  underline (`scaleX(1)`); inactive = `text-ink-muted`, hover → ink + draw. `aria-current`
-  behavior unchanged.
+- **Tap targets:** every text link that used to be a button or icon circle (hero CTAs,
+  Contact socials, back-to-top) gets invisible padding to a ≥44px hit area on coarse
+  pointers.
+- Nav has **two distinct states sharing one underline vocabulary** — both must survive the
+  de-pilling:
+  - *Active section* (scroll-spy, persistent): `text-ink` + underline held at `scaleX(1)`.
+    This replaces the `bg-surface-muted` pill as the "where am I" cue. `aria-current`
+    behavior unchanged.
+  - *Hover/focus* (transient, non-active items): `text-ink-muted` → `text-ink` with the
+    underline drawing in. Distinguishable from active by text weight/color arriving with
+    the motion rather than being held.
 - All `hover:text-accent` and `text-accent` copy styling is removed (project blurbs, project
   links). Focus rings and `::selection` keep accent.
 - Mobile menu sheet rows keep their existing hover background (control surface, not page
@@ -110,16 +133,21 @@ No hydration flash, no layout shift.
 ### 4. De-boxing for continuous scroll
 
 - **Projects → editorial list.** Delete filter state, filter pills, `AnimatePresence`
-  re-layout, card chrome, `Tag` pills, and the `featured` layout span. Render `ul` with
+  re-layout, card chrome, `Tag` pills, and the two-column grid. Render `ul` with
   `divide-y divide-edge border-y border-edge` (mirroring Writing). Each entry (`py-8`):
-  - Row 1: `h3` title (`text-xl font-semibold tracking-tight`) + right-aligned
-    "`{year} · {status}`" in muted sm.
+  - Row 1: `h3` title — `text-2xl` for `featured` entries, `text-xl` otherwise, both
+    `font-semibold tracking-tight` — + right-aligned "`{year} · {status}`" in muted sm.
   - Row 2: blurb as an ink-colored medium-weight lead line (accent removed), description
     below in muted `[15px]`.
   - Row 3 (muted, small): "`{category} · {tags joined by ' · '}`" then "GitHub ↗" /
     "Paper ↗" text links (ink-muted → ink, underline-draw).
   - `Reveal` stagger kept. Source order of `projects` array unchanged (PPE first).
-- **`featured` field** removed from `Project` interface and data (no remaining consumer).
+- **`featured` field kept.** It no longer spans grid columns; it drives the title scale
+  bump above, so PPE Detection and Bandar Tracker keep their curation signal inside the
+  flat list (hierarchy through scale, not boxes). `projects.ts` data is unchanged.
+- **Tags: chrome deleted, data kept.** Row 3 renders every tag ("YOLOv9", "RAGAS",
+  "FastAPI", …) as plain dot-separated text — the pill styling dies, the hiring-manager
+  scan value does not.
 - **About facts** (Training / Shipping / Writing): cards → hairline blocks matching the
   de-carded Skills treatment (`border-t border-edge pt-6`, 15px semibold title, muted body).
   Grid position unchanged.
@@ -162,8 +190,8 @@ data-layer convention. This is the only net-new copy in the project.
 - **Modified:** `globals.css` (link-draw utility, dotted-term style), `Hero.tsx`,
   `Navbar.tsx` (active-state restyle only), `About.tsx`, `Projects.tsx`, `Writing.tsx`,
   `Contact.tsx`, `Footer.tsx` (link-draw on back-to-top), `ButtonLink.tsx`,
-  `src/data/projects.ts` (drop `featured`), `src/data/site.ts` (add `contact.closing`),
-  README (direction note).
+  `src/data/site.ts` (add `contact.closing`), README (direction note).
+  `src/data/projects.ts` is NOT modified — `featured` stays.
 - **Deleted:** `src/components/ui/Tag.tsx`.
 - **Tests:** see below.
 
@@ -182,9 +210,16 @@ data-layer convention. This is the only net-new copy in the project.
   calling done.
 - **Static:** `next build`, `tsc --noEmit`, ESLint — all clean. No new dependencies; JS
   budget unaffected.
-- **A11y:** tooltip pattern per §3; colorless links are ink-on-surface (AA holds); dotted
-  underline never the only affordance for a *navigational* action (previews are
-  supplementary content).
+- **A11y:** tooltip pattern per §3; dotted underline never the only affordance for a
+  *navigational* action (previews are supplementary content); underline-draw fires on
+  `:focus-visible` and is instant under reduced motion (§2).
+- **Contrast re-check (explicit step):** after implementation, re-verify WCAG AA in BOTH
+  themes — the system is far more monochrome now, so there is less color left to hide a
+  miss behind. Check at minimum: ink-muted on surface, ink-muted → ink hover states, the
+  at-rest CTA underline, the dotted term underline, and the lone accent CTA
+  (`accent`/`accent-contrast`) in dark mode.
+- **Tap targets:** verify hero CTAs, social links, and back-to-top hit areas are ≥44px on
+  a 390px-wide viewport (part of the mobile screenshot/e2e pass).
 
 ## Out of scope
 
