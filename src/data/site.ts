@@ -1,18 +1,12 @@
 export const site = {
   name: "Kenny",
-  role: "AI Engineer — Computer Vision & LLM Systems",
+  role: "AI Engineer · Computer Vision & LLM Systems",
   pitch:
-    "I build machine learning systems end to end — computer vision and LLM tooling, from the training loop to the server that keeps it running.",
+    "I build machine learning systems end to end: computer vision and LLM tooling, from the training loop to the server that keeps it running.",
   url: "https://kennyvws.dev",
   email: "hi@kennyvws.dev",
   // TODO(Kenny): add resume.pdf to public/
   resume: "/resume.pdf",
-  status: [
-    { label: "Focus", value: "Computer vision, LLM tooling" },
-    { label: "Now", value: "YOLOv9 PPE detection research" },
-    { label: "Base", value: "Tangerang, Indonesia" },
-    { label: "Status", value: "Open to AI Engineer roles" },
-  ],
   socials: {
     github: "https://github.com/KennyUMN",
     // TODO(Kenny): verify LinkedIn URL — the "kenny" slug is likely someone else's

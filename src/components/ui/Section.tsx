@@ -3,13 +3,11 @@ import { Reveal } from "./Reveal";
 
 export function Section({
   id,
-  eyebrow,
   title,
   children,
   className,
 }: {
   id: string;
-  eyebrow: string;
   title: string;
   children: React.ReactNode;
   className?: string;
@@ -22,10 +20,9 @@ export function Section({
     >
       <div className="mx-auto w-full max-w-5xl">
         <Reveal>
-          <p className="text-sm font-semibold text-accent">{eyebrow}</p>
           <h2
             id={`${id}-heading`}
-            className="mt-2 max-w-2xl text-balance text-3xl font-semibold tracking-tight sm:text-4xl"
+            className="max-w-2xl text-balance text-3xl font-semibold tracking-tight sm:text-4xl"
           >
             {title}
           </h2>

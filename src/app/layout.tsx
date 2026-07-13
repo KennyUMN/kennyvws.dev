@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { MotionConfig } from "motion/react";
+import { site } from "@/data/site";
 import "./globals.css";
 
 const geist = Geist({
@@ -10,25 +11,24 @@ const geist = Geist({
   display: "swap",
 });
 
-const description =
-  "I build machine learning systems end to end — computer vision and LLM tooling, from the training loop to the server that keeps it running.";
+const title = "Kenny · AI Engineer";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://kennyvws.dev"),
-  title: "Kenny — AI Engineer",
-  description,
+  metadataBase: new URL(site.url),
+  title,
+  description: site.pitch,
   openGraph: {
-    title: "Kenny — AI Engineer",
-    description,
-    url: "https://kennyvws.dev",
-    siteName: "Kenny — AI Engineer",
+    title,
+    description: site.pitch,
+    url: site.url,
+    siteName: title,
     type: "website",
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Kenny — AI Engineer",
-    description,
+    title,
+    description: site.pitch,
   },
 };
 

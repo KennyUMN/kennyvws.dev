@@ -2,7 +2,6 @@ import { expect, test } from "vitest";
 import { categories, projects } from "@/data/projects";
 import { posts } from "@/data/posts";
 import { navItems, sectionIds } from "@/data/nav";
-import { site } from "@/data/site";
 
 test("there are exactly five projects", () => {
   expect(projects).toHaveLength(5);
@@ -41,13 +40,4 @@ test("nav covers the five anchored sections", () => {
   for (const item of navItems) {
     expect(item.href).toBe(`#${item.id}`);
   }
-});
-
-test("site status block has the four entries", () => {
-  expect(site.status.map((s) => s.label)).toEqual([
-    "Focus",
-    "Now",
-    "Base",
-    "Status",
-  ]);
 });

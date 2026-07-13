@@ -1,5 +1,6 @@
 import type { IconType } from "react-icons";
 import {
+  SiCplusplus,
   SiDocker,
   SiFastapi,
   SiGithubactions,
@@ -19,8 +20,6 @@ import {
   SiUbuntu,
   SiWeightsandbiases,
 } from "react-icons/si";
-import { FaDatabase } from "react-icons/fa6";
-import { TbBrandCpp } from "react-icons/tb";
 
 export type SkillCategory =
   | "Languages"
@@ -44,8 +43,8 @@ export const skillGroups: SkillGroup[] = [
     items: [
       { name: "Python", icon: SiPython },
       { name: "TypeScript", icon: SiTypescript },
-      { name: "C++", icon: TbBrandCpp },
-      { name: "SQL", icon: FaDatabase },
+      { name: "C++", icon: SiCplusplus },
+      { name: "SQL" },
       { name: "Bash", icon: SiGnubash },
     ],
   },

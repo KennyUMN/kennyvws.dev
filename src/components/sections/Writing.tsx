@@ -5,11 +5,7 @@ import { Section } from "@/components/ui/Section";
 
 export function Writing() {
   return (
-    <Section
-      id="writing"
-      eyebrow="Writing"
-      title="Notes in draft — coming soon."
-    >
+    <Section id="writing" title="Notes in draft, coming soon.">
       <ul className="divide-y divide-edge border-y border-edge">
         {posts.map((post, i) => (
           <li key={post.title}>
@@ -29,7 +25,7 @@ export function Writing() {
                   </p>
                 </div>
                 <p className="shrink-0 text-sm text-ink-muted">
-                  {post.tag} · {formatDate(post.date)} · {post.readTime}
+                  {post.tag} · {formatDate(post.date)}
                 </p>
               </div>
             </Reveal>

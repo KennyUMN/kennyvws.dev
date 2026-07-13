@@ -34,18 +34,10 @@ export function Hero() {
           </span>
         </motion.p>
 
-        <motion.p
-          data-reveal
-          variants={item}
-          className="mt-10 text-sm font-semibold text-accent"
-        >
-          {site.name} · {site.role}
-        </motion.p>
-
         <motion.h1
           data-reveal
           variants={item}
-          className="mt-4 max-w-3xl text-balance text-[clamp(2.5rem,1.3rem+5.5vw,4.75rem)] font-semibold leading-[1.04] tracking-tight"
+          className="mt-8 max-w-4xl text-balance text-[clamp(2.5rem,1.2rem+4.5vw,4.25rem)] font-semibold leading-[1.04] tracking-tight"
         >
           I build machine learning systems end to end.
         </motion.h1>
@@ -65,19 +57,6 @@ export function Hero() {
             GitHub <span aria-hidden>↗</span>
           </ButtonLink>
         </motion.div>
-
-        <motion.dl
-          data-reveal
-          variants={item}
-          className="mt-16 grid grid-cols-2 gap-x-8 gap-y-6 border-t border-edge pt-8 lg:grid-cols-4"
-        >
-          {site.status.map((entry) => (
-            <div key={entry.label}>
-              <dt className="text-sm text-ink-muted">{entry.label}</dt>
-              <dd className="mt-1 text-[15px] font-medium">{entry.value}</dd>
-            </div>
-          ))}
-        </motion.dl>
       </motion.div>
     </section>
   );

@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
+import { site } from "@/data/site";
 
-export const alt = "Kenny — AI Engineer";
+export const alt = "Kenny · AI Engineer";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -36,7 +37,7 @@ export default function OpenGraphImage() {
             Kenny
           </div>
           <div style={{ marginTop: 12, fontSize: 36, color: "#a3a3ad" }}>
-            AI Engineer — Computer Vision & LLM Systems
+            {site.role}
           </div>
         </div>
       </div>

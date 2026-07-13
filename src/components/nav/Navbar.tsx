@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useScroll } from "motion/react";
 import { navItems, sectionIds } from "@/data/nav";
 import { site } from "@/data/site";
 import { useActiveSection } from "@/hooks/useActiveSection";
@@ -15,12 +15,14 @@ export function Navbar() {
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const headerRef = useRef<HTMLElement>(null);
 
+  const { scrollY } = useScroll();
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+    // Prime from the current position (anchor deep links load mid-scroll,
+    // where no "change" event ever fires), then follow scroll updates.
+    const update = () => setScrolled(scrollY.get() > 8);
+    update();
+    return scrollY.on("change", update);
+  }, [scrollY]);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";

@@ -4,7 +4,7 @@ import { Section } from "@/components/ui/Section";
 
 export function About() {
   return (
-    <Section id="about" eyebrow="About" title="The unglamorous parts, done well.">
+    <Section id="about" title="The unglamorous parts, done well.">
       <div className="grid gap-12 lg:grid-cols-[3fr_2fr] lg:gap-16">
         <div className="space-y-5 text-lg leading-relaxed text-ink-muted">
           {about.paragraphs.map((paragraph, i) => (

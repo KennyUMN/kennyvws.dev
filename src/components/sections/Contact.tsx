@@ -12,7 +12,7 @@ const socialLinks = [
 
 export function Contact() {
   return (
-    <Section id="contact" eyebrow="Contact" title="Let's talk.">
+    <Section id="contact" title="Let's talk.">
       <Reveal>
         <div className="max-w-2xl">
           <p className="text-lg leading-relaxed text-ink-muted">

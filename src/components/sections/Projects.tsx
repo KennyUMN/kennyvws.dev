@@ -16,7 +16,7 @@ type Filter = "All" | ProjectCategory;
 
 function ProjectCard({ project }: { project: Project }) {
   return (
-    <article className="group flex h-full flex-col rounded-[20px] border border-edge bg-raised p-6 shadow-soft transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-lifted sm:p-8">
+    <article className="group flex h-full flex-col rounded-2xl border border-edge bg-raised p-6 shadow-soft transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-lifted sm:p-8">
       <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
         <h3 className="text-xl font-semibold tracking-tight">{project.title}</h3>
         <p className="text-sm text-ink-muted">
@@ -64,11 +64,7 @@ export function Projects() {
     filter === "All" ? projects : projects.filter((p) => p.category === filter);
 
   return (
-    <Section
-      id="work"
-      eyebrow="Work"
-      title="A problem, an approach, an outcome."
-    >
+    <Section id="work" title="A problem, an approach, an outcome.">
       <div role="group" aria-label="Filter projects" className="flex flex-wrap gap-2">
         {(["All", ...categories] as Filter[]).map((category) => (
           <button
