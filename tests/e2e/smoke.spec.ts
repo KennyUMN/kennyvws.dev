@@ -2,10 +2,13 @@ import { expect, test } from "@playwright/test";
 
 test("hero H1 is the full pitch, spoken once", async ({ page }) => {
   await page.goto("/");
-  const h1 = page.getByRole("heading", { level: 1 });
-  await expect(h1).toContainText("machine learning systems");
-  await expect(h1).toContainText("the server");
-  await expect(h1).toContainText("that keeps it running.");
+  // \s*, — Chromium's accname computation joins element boundaries with a space before this comma.
+  await expect(
+    page.getByRole("heading", {
+      level: 1,
+      name: /^I build machine learning systems end to end: computer vision and LLM tooling\s*, from the training loop to the server that keeps it running\.$/,
+    })
+  ).toBeVisible();
   await expect(
     page.getByText("Open to AI Engineer roles").first()
   ).toBeVisible();

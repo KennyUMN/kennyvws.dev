@@ -101,7 +101,7 @@ export function TermPreview({
       }}
     >
       {children}
-      <span id={descriptionId} className="sr-only">
+      <span id={descriptionId} aria-hidden className="sr-only">
         {title} — {meta}
       </span>
       {mounted &&
