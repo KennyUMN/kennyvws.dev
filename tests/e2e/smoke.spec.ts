@@ -63,15 +63,15 @@ test.describe("theme", () => {
   });
 });
 
-test("project filter narrows and restores the grid", async ({ page }) => {
+test("work section is an editorial list, not a filtered grid", async ({
+  page,
+}) => {
   await page.goto("/");
-  const cards = page.locator("#work article");
-  await expect(cards).toHaveCount(5);
-  await page.getByRole("button", { name: "Computer Vision" }).click();
-  await expect(cards).toHaveCount(1);
-  await expect(cards.first()).toContainText("Semi-Supervised PPE Detection");
-  await page.getByRole("button", { name: "All", exact: true }).click();
-  await expect(cards).toHaveCount(5);
+  const entries = page.locator("#work article");
+  await expect(entries).toHaveCount(5);
+  await expect(entries.first()).toContainText("Semi-Supervised PPE Detection");
+  await expect(entries.first()).toContainText("YOLOv9");
+  await expect(page.locator("#work").getByRole("button")).toHaveCount(0);
 });
 
 test.describe("mobile menu focus trap", () => {
