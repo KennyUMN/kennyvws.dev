@@ -15,7 +15,7 @@
 - All user-facing copy comes verbatim from the spec's data (originally from Kenny's brief). NEVER invent facts, metrics, companies, or testimonials. Presentation shaping is allowed; new facts are not.
 - Every GitHub project link uses its own slug under `https://github.com/KennyUMN/` with a `TODO(Kenny): confirm exact repo name` comment. Never point projects at the bare profile URL.
 - Placeholders that stay: `/resume.pdf` (+ `TODO(Kenny): add resume.pdf to public/`), PPE paper link `#`, LinkedIn `https://linkedin.com/in/kenny` (+ `TODO(Kenny): verify LinkedIn URL`).
-- Animate only compositor-friendly properties (transform, opacity). Honor `prefers-reduced-motion` via `MotionConfig reducedMotion="user"`.
+- Motion (scroll reveals, filter animations, anything continuous) uses compositor-friendly properties only (transform, opacity). Short paint-only CSS hover/press transitions (color, background-color, box-shadow) are fine per the user's web rules; never animate layout-bound properties (width, height, top, margin, padding, border, font-size). Honor `prefers-reduced-motion` via `MotionConfig reducedMotion="user"`.
 - Both themes are first-class; text/accent pairs must keep WCAG AA contrast. One accent color only (blue tokens below); no neon.
 - Mobile-first: check every section at 320px width mentally as you write it; nothing may overflow horizontally.
 - Each task ends with the listed verification passing, then a commit using the conventional format shown (no attribution footers — disabled globally for this user).
