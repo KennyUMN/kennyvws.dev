@@ -40,4 +40,5 @@ export const about = {
 export const contact = {
   framing:
     "Open to AI Engineer roles, internships, and research collaborations.",
+  closing: "Clean the data. Fight the training run. Ship the server.",
 } as const;

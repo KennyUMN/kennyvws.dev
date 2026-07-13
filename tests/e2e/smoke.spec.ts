@@ -74,6 +74,13 @@ test("work section is an editorial list, not a filtered grid", async ({
   await expect(page.locator("#work").getByRole("button")).toHaveCount(0);
 });
 
+test("the page closes with the POV statement", async ({ page }) => {
+  await page.goto("/");
+  await expect(
+    page.getByText("Clean the data. Fight the training run. Ship the server.")
+  ).toBeVisible();
+});
+
 test.describe("mobile menu focus trap", () => {
   test.use({ viewport: { width: 390, height: 844 } });
 

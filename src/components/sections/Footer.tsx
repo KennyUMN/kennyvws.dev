@@ -7,8 +7,12 @@ export function Footer() {
         <p>
           © {new Date().getFullYear()} {site.name} · Tangerang, Indonesia
         </p>
-        <a href="#top" className="transition-colors hover:text-ink">
-          Back to top <span aria-hidden>↑</span>
+        <a
+          href="#top"
+          className="inline-flex min-h-11 items-center gap-1 transition-colors hover:text-ink"
+        >
+          <span className="link-draw">Back to top</span>
+          <span aria-hidden>↑</span>
         </a>
       </div>
     </footer>
