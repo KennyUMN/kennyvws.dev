@@ -1,6 +1,7 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   AnimatePresence,
   motion,
@@ -33,6 +34,9 @@ export function TermPreview({
   const descriptionId = useId();
   const triggerRef = useRef<HTMLSpanElement>(null);
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => setMounted(true), []);
   const reducedMotion = useReducedMotion();
 
   const rawX = useMotionValue(0);
@@ -100,25 +104,29 @@ export function TermPreview({
       <span id={descriptionId} className="sr-only">
         {title} — {meta}
       </span>
-      <AnimatePresence>
-        {open && (
-          <motion.span
-            data-testid="term-card"
-            aria-hidden
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.98 }}
-            transition={{ duration: 0.15, ease: EASE_OUT }}
-            style={{ x, y, maxWidth: CARD_MAX_WIDTH }}
-            className="pointer-events-none fixed left-0 top-0 z-50 block rounded-xl border border-edge bg-raised px-4 py-3 text-left shadow-soft"
-          >
-            <span className="block text-sm font-semibold text-ink">{title}</span>
-            <span className="mt-1 block text-[13px] leading-snug text-ink-muted">
-              {meta}
-            </span>
-          </motion.span>
+      {mounted &&
+        createPortal(
+          <AnimatePresence>
+            {open && (
+              <motion.span
+                data-testid="term-card"
+                aria-hidden
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                transition={{ duration: 0.15, ease: EASE_OUT }}
+                style={{ x, y, maxWidth: CARD_MAX_WIDTH }}
+                className="pointer-events-none fixed left-0 top-0 z-50 block rounded-xl border border-edge bg-raised px-4 py-3 text-left shadow-soft"
+              >
+                <span className="block text-sm font-semibold text-ink">{title}</span>
+                <span className="mt-1 block text-[13px] leading-snug text-ink-muted">
+                  {meta}
+                </span>
+              </motion.span>
+            )}
+          </AnimatePresence>,
+          document.body
         )}
-      </AnimatePresence>
     </span>
   );
 }
