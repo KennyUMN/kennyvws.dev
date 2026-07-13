@@ -19,7 +19,7 @@ Motion, next-themes. Design direction: Apple-HIG-inspired "Quiet Precision".
 ## Edit content
 
 All copy lives in `src/data/` (site, nav, projects, skills, posts).
-Layout code never contains copy — edit data files only.
+Structured content (projects, skills, posts, links, status) lives in the data files; section components hardcode only their display headlines.
 
 ## Deploy
 

@@ -51,3 +51,27 @@ test("project filter narrows and restores the grid", async ({ page }) => {
   await page.getByRole("button", { name: "All", exact: true }).click();
   await expect(cards).toHaveCount(5);
 });
+
+test.describe("mobile menu focus trap", () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test("traps focus while open and releases it on escape", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    const header = page.locator("header");
+    const menuButton = page.getByRole("button", { name: "Open menu" });
+
+    await menuButton.click();
+    await expect(page.getByRole("link", { name: "About" })).toBeFocused();
+
+    for (let i = 0; i < 10; i++) {
+      await page.keyboard.press("Tab");
+      await expect(header.locator(":focus")).toBeVisible();
+    }
+
+    await page.keyboard.press("Escape");
+    await expect(menuButton).toBeFocused();
+    await expect(page.locator("#mobile-menu")).toBeHidden();
+  });
+});
