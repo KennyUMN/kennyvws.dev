@@ -1,13 +1,32 @@
 import { expect, test } from "@playwright/test";
 
-test("hero renders headline and availability pill", async ({ page }) => {
+test("hero H1 is the full pitch, spoken once", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText(
-    "machine learning systems"
-  );
+  const h1 = page.getByRole("heading", { level: 1 });
+  await expect(h1).toContainText("machine learning systems");
+  await expect(h1).toContainText("the server");
+  await expect(h1).toContainText("that keeps it running.");
   await expect(
     page.getByText("Open to AI Engineer roles").first()
   ).toBeVisible();
+});
+
+test("hovering a hero term reveals its preview card", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("term-computer-vision").hover();
+  const card = page.getByTestId("term-card");
+  await expect(card).toBeVisible();
+  await expect(card).toContainText("Semi-Supervised PPE Detection");
+});
+
+test("term preview opens on keyboard focus and closes on Escape", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByTestId("term-computer-vision").focus();
+  await expect(page.getByTestId("term-card")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("term-card")).toBeHidden();
 });
 
 test("nav anchor scrolls to the work section", async ({ page }) => {
@@ -73,5 +92,21 @@ test.describe("mobile menu focus trap", () => {
     await page.keyboard.press("Escape");
     await expect(menuButton).toBeFocused();
     await expect(page.locator("#mobile-menu")).toBeHidden();
+  });
+});
+
+test.describe("mobile tap targets", () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test("hero CTAs meet 44px hit areas", async ({ page }) => {
+    await page.goto("/");
+    for (const name of [/See projects/, /GitHub/]) {
+      const box = await page
+        .getByRole("link", { name })
+        .first()
+        .boundingBox();
+      expect(box).not.toBeNull();
+      expect(box!.height).toBeGreaterThanOrEqual(44);
+    }
   });
 });
