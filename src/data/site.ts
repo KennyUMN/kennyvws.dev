@@ -4,13 +4,11 @@ export const site = {
   pitch:
     "I build machine learning systems end to end: computer vision and LLM tooling, from the training loop to the server that keeps it running.",
   url: "https://kennyvws.dev",
-  email: "hi@kennyvws.dev",
-  // TODO(Kenny): add resume.pdf to public/
+  email: "kennyvws1@gmail.com",
   resume: "/resume.pdf",
   socials: {
     github: "https://github.com/KennyUMN",
-    // TODO(Kenny): verify LinkedIn URL — the "kenny" slug is likely someone else's
-    linkedin: "https://linkedin.com/in/kenny",
+    linkedin: "https://www.linkedin.com/in/kenny-sembiring-5a5623309/",
     x: "https://x.com/kennyvws",
   },
 } as const;
