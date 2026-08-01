@@ -1,4 +1,5 @@
 import { projects } from "@/data/projects";
+import { ProjectArtifact } from "@/components/artifacts/ProjectArtifact";
 import { Reveal } from "@/components/ui/Reveal";
 import { Section } from "@/components/ui/Section";
 import { cn } from "@/lib/utils";
@@ -10,48 +11,59 @@ export function Projects() {
         {projects.map((project, i) => (
           <li key={project.title}>
             <Reveal delay={i * 0.05}>
-              <article className="py-8 sm:py-9">
-                <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
-                  <h3
-                    className={cn(
-                      "font-semibold tracking-tight",
-                      project.featured ? "text-2xl" : "text-xl"
-                    )}
-                  >
-                    {project.title}
-                  </h3>
-                  <p className="text-sm text-ink-muted">
-                    {project.year} · {project.status}
-                  </p>
-                </div>
-                <p className="mt-3 max-w-2xl text-[15px] font-medium">
-                  {project.blurb}
-                </p>
-                <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-ink-muted">
-                  {project.description}
-                </p>
-                <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-ink-muted">
-                  <p>{[project.category, ...project.tags].join(" · ")}</p>
-                  <span className="flex items-center gap-5">
-                    <a
-                      href={project.github}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex min-h-11 items-center gap-1 font-medium transition-colors hover:text-ink"
+              <article className="py-8 sm:py-9 md:grid md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] md:items-start md:gap-x-10">
+                <div>
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+                    <h3
+                      className={cn(
+                        "font-semibold tracking-tight",
+                        project.featured ? "text-2xl" : "text-xl"
+                      )}
                     >
-                      <span className="link-draw">GitHub</span>
-                      <span aria-hidden>↗</span>
-                    </a>
-                    {project.paper && (
+                      {project.title}
+                    </h3>
+                    <p className="text-sm text-ink-muted">
+                      {project.year} · {project.status}
+                    </p>
+                  </div>
+                  <p className="mt-3 max-w-2xl text-[15px] font-medium">
+                    {project.blurb}
+                  </p>
+                  <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-ink-muted">
+                    {project.description}
+                  </p>
+                  <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-ink-muted">
+                    <p>{[project.category, ...project.tags].join(" · ")}</p>
+                    <span className="flex items-center gap-5">
                       <a
-                        href={project.paper}
+                        href={project.github}
+                        target="_blank"
+                        rel="noreferrer"
                         className="inline-flex min-h-11 items-center gap-1 font-medium transition-colors hover:text-ink"
                       >
-                        <span className="link-draw">Paper</span>
+                        <span className="link-draw">GitHub</span>
                         <span aria-hidden>↗</span>
                       </a>
-                    )}
-                  </span>
+                      {project.paper && (
+                        <a
+                          href={project.paper}
+                          className="inline-flex min-h-11 items-center gap-1 font-medium transition-colors hover:text-ink"
+                        >
+                          <span className="link-draw">Paper</span>
+                          <span aria-hidden>↗</span>
+                        </a>
+                      )}
+                    </span>
+                  </div>
+                </div>
+                {/* Hidden below sm: at phone widths the list's scannability
+                    matters more than the supporting plate. */}
+                <div className="mt-6 hidden max-w-[220px] sm:block md:mt-0 md:justify-self-end">
+                  <ProjectArtifact
+                    category={project.category}
+                    index={i}
+                    title={project.title}
+                  />
                 </div>
               </article>
             </Reveal>
