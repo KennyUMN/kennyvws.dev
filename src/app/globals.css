@@ -53,9 +53,12 @@ html {
 
   /* Entrance reveals become opacity-only. MotionConfig reducedMotion="user"
      already stops transform *animation*, but the initial y-offset is inlined
-     into the server-rendered HTML — override it so nothing sits translated. */
+     into the server-rendered HTML — override it so nothing sits translated.
+     clip-path is not covered by reducedMotion at all, so the heading wipe
+     would otherwise render fully clipped and never open. */
   [data-reveal] {
     transform: none !important;
+    clip-path: none !important;
   }
 }
 

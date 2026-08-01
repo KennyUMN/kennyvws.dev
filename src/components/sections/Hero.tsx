@@ -1,35 +1,45 @@
 "use client";
 
-import { motion } from "motion/react";
+import { useRef } from "react";
+import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { site } from "@/data/site";
 import { TermPreview } from "@/components/ui/TermPreview";
-import { EASE_OUT } from "@/components/ui/Reveal";
+import { Reticle } from "@/components/artifacts/Reticle";
+import { DetectionFrame } from "@/components/artifacts/DetectionFrame";
+import { reveal, staggerParent } from "@/lib/motion";
 
-const item = {
-  hidden: { opacity: 0, y: 20 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.7, ease: EASE_OUT },
-  },
-};
+// Scroll-linked drift on the artifact plate only — a few dozen px and a
+// fade toward the fold, inert entirely under reduced motion.
+const PLATE_DRIFT_PX = 28;
+const PLATE_MIN_OPACITY = 0.35;
 
 export function Hero() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const reducedMotion = useReducedMotion();
+
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end start"],
+  });
+  const plateY = useTransform(scrollYProgress, [0, 1], [0, PLATE_DRIFT_PX]);
+  const plateOpacity = useTransform(scrollYProgress, [0, 1], [1, PLATE_MIN_OPACITY]);
+
   return (
     <section
+      ref={sectionRef}
       id="top"
       aria-label="Introduction"
       className="scroll-mt-24 px-6 pb-[clamp(4rem,2.5rem+4vw,7rem)] pt-32 sm:pt-40"
     >
       <motion.div
-        variants={{ hidden: {}, show: { transition: { staggerChildren: 0.08 } } }}
+        variants={staggerParent(0.08)}
         initial="hidden"
         animate="show"
         className="mx-auto w-full max-w-5xl"
       >
         <motion.p
           data-reveal
-          variants={item}
+          variants={reveal("body")}
           className="flex items-center gap-2 text-sm text-ink-muted"
         >
           <span aria-hidden className="size-2 rounded-full bg-accent" />
@@ -38,7 +48,7 @@ export function Hero() {
 
         <motion.h1
           data-reveal
-          variants={item}
+          variants={reveal("body")}
           className="mt-8 max-w-4xl text-balance text-[clamp(1.9rem,1rem+3vw,3.25rem)] font-semibold leading-[1.15] tracking-tight"
         >
           I build machine learning systems end to end:{" "}
@@ -49,28 +59,43 @@ export function Hero() {
           running.
         </motion.h1>
 
-        <motion.div
-          data-reveal
-          variants={item}
-          className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-2"
-        >
-          <a
-            href="#work"
-            className="inline-flex min-h-11 items-center gap-1.5 text-lg font-medium"
+        <div className="mt-10 flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+          <motion.div
+            data-reveal
+            variants={reveal("body")}
+            className="flex flex-wrap items-center gap-x-8 gap-y-2"
           >
-            <span className="link-draw link-rest">See projects</span>
-            <span aria-hidden>→</span>
-          </a>
-          <a
-            href={site.socials.github}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex min-h-11 items-center gap-1.5 text-lg font-medium"
+            <a
+              href="#work"
+              className="inline-flex min-h-11 items-center gap-1.5 text-lg font-medium"
+            >
+              <span className="link-draw link-rest">See projects</span>
+              <span aria-hidden>→</span>
+            </a>
+            <a
+              href={site.socials.github}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex min-h-11 items-center gap-1.5 text-lg font-medium"
+            >
+              <span className="link-draw link-rest">GitHub</span>
+              <span aria-hidden>↗</span>
+            </a>
+          </motion.div>
+
+          <motion.div
+            data-reveal
+            variants={reveal("artifact")}
+            style={reducedMotion ? undefined : { y: plateY, opacity: plateOpacity }}
+            className="hidden w-full sm:block lg:w-[360px] lg:shrink-0"
           >
-            <span className="link-draw link-rest">GitHub</span>
-            <span aria-hidden>↗</span>
-          </a>
-        </motion.div>
+            <Reticle label="FIG. 01 — DETECTION">
+              <div className="aspect-[16/9] overflow-hidden bg-raised lg:aspect-[4/3]">
+                <DetectionFrame />
+              </div>
+            </Reticle>
+          </motion.div>
+        </div>
       </motion.div>
     </section>
   );

@@ -10,7 +10,7 @@ import {
   useSpring,
 } from "motion/react";
 import { terms, type TermId } from "@/data/terms";
-import { EASE_OUT } from "@/components/ui/Reveal";
+import { EASE_OUT } from "@/lib/motion";
 
 const CURSOR_OFFSET_X = 14;
 const CURSOR_OFFSET_Y = 20;
