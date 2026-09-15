@@ -7,14 +7,14 @@ test("there are exactly five projects", () => {
   expect(projects).toHaveLength(5);
 });
 
-test("every project links to its own repo slug, never the bare profile", () => {
-  for (const p of projects) {
-    expect(p.github).toMatch(/^https:\/\/github\.com\/KennyUMN\/[a-z0-9-]+$/);
+test("every project link points at its own repo slug, never the bare profile", () => {
+  for (const p of projects.filter((p) => p.github)) {
+    expect(p.github).toMatch(/^https:\/\/github\.com\/KennyUMN\/[\w.-]+$/);
   }
 });
 
 test("github slugs are unique per project", () => {
-  const links = projects.map((p) => p.github);
+  const links = projects.map((p) => p.github).filter(Boolean);
   expect(new Set(links).size).toBe(links.length);
 });
 

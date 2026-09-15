@@ -22,7 +22,7 @@ export function Section({
         <Reveal variant="heading">
           <h2
             id={`${id}-heading`}
-            className="max-w-2xl text-balance text-3xl font-semibold tracking-tight sm:text-4xl"
+            className="max-w-3xl text-balance text-4xl font-semibold tracking-tight sm:text-5xl"
           >
             {title}
           </h2>

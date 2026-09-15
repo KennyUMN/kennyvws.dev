@@ -15,7 +15,8 @@ export interface Project {
   year: string;
   status: string;
   featured?: boolean;
-  github: string;
+  /** Omitted when the work has no public repo — the row then renders without a GitHub link. */
+  github?: string;
   paper?: string;
 }
 
@@ -30,10 +31,8 @@ export const projects: Project[] = [
     year: "2025",
     status: "Research, in submission",
     featured: true,
-    // TODO(Kenny): confirm exact repo name
-    github: "https://github.com/KennyUMN/ppe-detection",
-    // TODO(Kenny): replace with the real paper link when available
-    paper: "#",
+    github: "https://github.com/KennyUMN/ppe-compliance-ssl-yolov9",
+    paper: "https://drive.google.com/file/d/1GjKGlQ2XhC3NixaNyOZycBKS09GeofFR/view",
   },
   {
     title: "Bandar Tracker",
@@ -45,8 +44,7 @@ export const projects: Project[] = [
     year: "2025",
     status: "Active",
     featured: true,
-    // TODO(Kenny): confirm exact repo name
-    github: "https://github.com/KennyUMN/bandar-tracker",
+    // Repo is private (BACKUP-BANDAR-TRACKER) — no public link to give.
   },
   {
     title: "RAG Evaluation Harness",
@@ -57,8 +55,7 @@ export const projects: Project[] = [
     tags: ["LlamaIndex", "RAGAS", "Ollama", "Evaluation"],
     year: "2025",
     status: "Active",
-    // TODO(Kenny): confirm exact repo name
-    github: "https://github.com/KennyUMN/rag-eval-harness",
+    // No public repo yet.
   },
   {
     title: "Tiny Transformer From Scratch",
@@ -69,8 +66,7 @@ export const projects: Project[] = [
     tags: ["PyTorch", "Transformers", "Tokenizers"],
     year: "2024",
     status: "Complete",
-    // TODO(Kenny): confirm exact repo name
-    github: "https://github.com/KennyUMN/tiny-transformer",
+    // No public repo yet.
   },
   {
     title: "Document Q&A Agent",
@@ -81,7 +77,6 @@ export const projects: Project[] = [
     tags: ["LangChain", "FastAPI", "Hugging Face", "RAG"],
     year: "2025",
     status: "Active",
-    // TODO(Kenny): confirm exact repo name
-    github: "https://github.com/KennyUMN/doc-qa-agent",
+    github: "https://github.com/KennyUMN/finrag-id",
   },
 ];

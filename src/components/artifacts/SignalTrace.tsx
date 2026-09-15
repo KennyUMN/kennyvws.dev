@@ -1,8 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { motion, useReducedMotion } from "motion/react";
-import { DUR_SLOW, EASE_OUT_SOFT } from "@/lib/motion";
+import { useEffect, useRef, useState } from "react";
+import {
+  motion,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+} from "motion/react";
 import { cn } from "@/lib/utils";
 
 interface SignalTraceProps {
@@ -28,10 +32,17 @@ const CURVES = {
 const COMPARISON_PATH = "M14,30 C40,38 62,52 82,62 C94,68 104,72 110,74";
 const GRID_Y = [30, 46, 62];
 
-/** Abstract SVG line chart: a descending curve draws itself in once on
- *  scroll-into-view, then rests as a static plate. Colorless — ink/edge
- *  tokens only, themed automatically via currentColor + Tailwind utilities. */
+/** Scroll progress maps to a training-step count; the end of the curve is the
+ *  end of the run. Also the static readout under reduced motion. */
+const MAX_STEPS = 4000;
+
+/** Abstract SVG line chart: the descending curve draws itself under the
+ *  visitor's own scroll — the plate is the scrubber, so pushing it up the
+ *  viewport is the training step. One stroke, pathLength only, no layout
+ *  properties. Colorless — ink/edge tokens only, themed automatically via
+ *  currentColor + Tailwind utilities. */
 export function SignalTrace({ className, variant = "smooth" }: SignalTraceProps) {
+  const ref = useRef<HTMLDivElement>(null);
   // `useReducedMotion` reads matchMedia synchronously on the client but not
   // during SSR, so branching on it directly would render different pathLength
   // attributes server vs. client and trip a hydration mismatch. Gating behind
@@ -45,8 +56,21 @@ export function SignalTrace({ className, variant = "smooth" }: SignalTraceProps)
   const reducedMotion = mounted && reducedMotionValue;
   const curve = CURVES[variant];
 
+  // Scroll is the timeline: the plate travels up the viewport, the curve
+  // draws with it. pathLength is paint-bound (stroke-dasharray), so this
+  // stays on a single 1.5px stroke — never spread across many paths.
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start 0.9", "end 0.45"],
+  });
+  const pathLength = useTransform(scrollYProgress, [0, 1], [0, 1]);
+  const dotOpacity = useTransform(scrollYProgress, [0.85, 1], [0, 1]);
+  const step = useTransform(scrollYProgress, (v) =>
+    Math.round(v * MAX_STEPS).toLocaleString("en-US")
+  );
+
   return (
-    <div className={cn("relative h-full w-full", className)}>
+    <div ref={ref} className={cn("relative h-full w-full", className)}>
       <svg
         viewBox="0 0 120 88"
         className="h-full w-full overflow-visible"
@@ -77,30 +101,46 @@ export function SignalTrace({ className, variant = "smooth" }: SignalTraceProps)
           opacity={0.4}
         />
 
-        <motion.path
-          d={curve.path}
-          fill="none"
-          className="stroke-ink"
-          strokeWidth={1.5}
-          strokeLinecap="round"
-          {...(reducedMotion
-            ? {}
-            : {
-                initial: { pathLength: 0 },
-                whileInView: { pathLength: 1 },
-                viewport: { once: true, margin: "-64px 0px" },
-                transition: { duration: DUR_SLOW, ease: EASE_OUT_SOFT },
-              })}
-        />
+        {reducedMotion ? (
+          <path
+            d={curve.path}
+            fill="none"
+            className="stroke-ink"
+            strokeWidth={1.5}
+            strokeLinecap="round"
+          />
+        ) : (
+          <motion.path
+            d={curve.path}
+            fill="none"
+            className="stroke-ink"
+            strokeWidth={1.5}
+            strokeLinecap="round"
+            style={{ pathLength }}
+          />
+        )}
 
-        <circle cx={110} cy={curve.endY} r={2} className="fill-ink" />
+        {reducedMotion ? (
+          <circle cx={110} cy={curve.endY} r={2} className="fill-ink" />
+        ) : (
+          <motion.circle
+            cx={110}
+            cy={curve.endY}
+            r={2}
+            className="fill-ink"
+            style={{ opacity: dotOpacity }}
+          />
+        )}
       </svg>
 
       <span className="pointer-events-none absolute left-0 top-0 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-muted">
         loss
       </span>
       <span className="pointer-events-none absolute bottom-0 right-0 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-muted">
-        step
+        step{" "}
+        <motion.span className="tabular-nums">
+          {reducedMotion ? MAX_STEPS.toLocaleString("en-US") : step}
+        </motion.span>
       </span>
     </div>
   );

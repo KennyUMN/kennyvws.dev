@@ -35,18 +35,22 @@ export function Projects() {
                   <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-ink-muted">
                     <p>{[project.category, ...project.tags].join(" · ")}</p>
                     <span className="flex items-center gap-5">
-                      <a
-                        href={project.github}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex min-h-11 items-center gap-1 font-medium transition-colors hover:text-ink"
-                      >
-                        <span className="link-draw">GitHub</span>
-                        <span aria-hidden>↗</span>
-                      </a>
+                      {project.github && (
+                        <a
+                          href={project.github}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex min-h-11 items-center gap-1 font-medium transition-colors hover:text-ink"
+                        >
+                          <span className="link-draw">GitHub</span>
+                          <span aria-hidden>↗</span>
+                        </a>
+                      )}
                       {project.paper && (
                         <a
                           href={project.paper}
+                          target="_blank"
+                          rel="noreferrer"
                           className="inline-flex min-h-11 items-center gap-1 font-medium transition-colors hover:text-ink"
                         >
                           <span className="link-draw">Paper</span>
@@ -56,9 +60,10 @@ export function Projects() {
                     </span>
                   </div>
                 </div>
-                {/* Hidden below sm: at phone widths the list's scannability
-                    matters more than the supporting plate. */}
-                <div className="mt-6 hidden max-w-[220px] sm:block md:mt-0 md:justify-self-end">
+                {/* Below sm the plate spans the row instead of sitting in the
+                    right column — a narrow 220px plate next to full-width
+                    copy reads as a thumbnail, not an artifact. */}
+                <div className="mt-6 max-w-[220px] sm:block md:mt-0 md:justify-self-end">
                   <ProjectArtifact
                     category={project.category}
                     index={i}

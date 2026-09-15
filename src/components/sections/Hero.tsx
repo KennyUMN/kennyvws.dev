@@ -29,7 +29,7 @@ export function Hero() {
       ref={sectionRef}
       id="top"
       aria-label="Introduction"
-      className="scroll-mt-24 px-6 pb-[clamp(4rem,2.5rem+4vw,7rem)] pt-32 sm:pt-40"
+      className="blueprint scroll-mt-24 px-6 pb-[clamp(4rem,2.5rem+4vw,7rem)] pt-32 sm:pt-40"
     >
       <motion.div
         variants={staggerParent(0.08)}
@@ -49,7 +49,7 @@ export function Hero() {
         <motion.h1
           data-reveal
           variants={reveal("body")}
-          className="mt-8 max-w-4xl text-balance text-[clamp(1.9rem,1rem+3vw,3.25rem)] font-semibold leading-[1.15] tracking-tight"
+          className="mt-8 max-w-5xl text-balance text-[clamp(1.9rem,1rem+3.2vw,4rem)] font-semibold leading-[1.1] tracking-[-0.02em]"
         >
           I build machine learning systems end to end:{" "}
           <TermPreview term="computer-vision">computer vision</TermPreview> and{" "}
@@ -87,7 +87,7 @@ export function Hero() {
             data-reveal
             variants={reveal("artifact")}
             style={reducedMotion ? undefined : { y: plateY, opacity: plateOpacity }}
-            className="hidden w-full sm:block lg:w-[360px] lg:shrink-0"
+            className="w-full sm:w-auto lg:w-[360px] lg:shrink-0"
           >
             <Reticle label="FIG. 01 — DETECTION">
               <div className="aspect-[16/9] overflow-hidden bg-raised lg:aspect-[4/3]">

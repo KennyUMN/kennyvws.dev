@@ -9,7 +9,7 @@ export const site = {
   socials: {
     github: "https://github.com/KennyUMN",
     linkedin: "https://www.linkedin.com/in/kenny-sembiring-5a5623309/",
-    x: "https://x.com/kennyvws",
+    x: "https://x.com/kenny_sembiring",
   },
 } as const;
 

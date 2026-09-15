@@ -62,6 +62,59 @@ html {
   }
 }
 
+/* Theme swap. Where View Transitions exist the new theme wipes in as a circle
+   from the toggle; elsewhere the colour tokens crossfade. Both are scoped to
+   the swap itself so nothing else in the page picks up a colour transition. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 0;
+}
+
+::view-transition-new(root) {
+  z-index: 1;
+  animation: theme-wipe 480ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes theme-wipe {
+  from {
+    clip-path: circle(0 at var(--wipe-x, 50%) var(--wipe-y, 0));
+  }
+  to {
+    clip-path: circle(var(--wipe-r, 150vmax) at var(--wipe-x, 50%) var(--wipe-y, 0));
+  }
+}
+
+html.theme-fade,
+html.theme-fade *,
+html.theme-fade *::before,
+html.theme-fade *::after {
+  transition:
+    background-color 320ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 320ms cubic-bezier(0.16, 1, 0.3, 1),
+    color 320ms cubic-bezier(0.16, 1, 0.3, 1),
+    fill 320ms cubic-bezier(0.16, 1, 0.3, 1),
+    stroke 320ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-new(root),
+  ::view-transition-old(root) {
+    animation: none;
+  }
+
+  html.theme-fade,
+  html.theme-fade *,
+  html.theme-fade *::before,
+  html.theme-fade *::after {
+    transition: none;
+  }
+}
+
 ::selection {
   background: var(--accent);
   color: var(--accent-contrast);
@@ -130,4 +183,18 @@ html {
   .link-draw::after {
     transition: none; /* underline toggles instantly */
   }
+}
+
+/* Blueprint ground — the same 28px grid the detection canvas draws, so the
+   page and its plates share one measurement instead of the page being blank
+   paper behind them. The radial layer fades the grid toward the fold so it
+   reads as atmosphere, not wallpaper. Pure background-image: no pseudo
+   element, so it can never sit on top of content. */
+.blueprint {
+  background-color: var(--surface);
+  background-image:
+    radial-gradient(140% 110% at 72% 0%, transparent 25%, var(--surface) 78%),
+    linear-gradient(to right, var(--edge) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--edge) 1px, transparent 1px);
+  background-size: auto, 28px 28px, 28px 28px;
 }
