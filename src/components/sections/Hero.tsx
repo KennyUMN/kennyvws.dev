@@ -67,7 +67,7 @@ export function Hero() {
           >
             <a
               href="#work"
-              className="inline-flex min-h-11 items-center gap-1.5 text-lg font-medium"
+              className="inline-flex min-h-12 items-center gap-1.5 text-lg font-medium"
             >
               <span className="link-draw link-rest">See projects</span>
               <span aria-hidden>→</span>
@@ -76,7 +76,7 @@ export function Hero() {
               href={site.socials.github}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex min-h-11 items-center gap-1.5 text-lg font-medium"
+              className="inline-flex min-h-12 items-center gap-1.5 text-lg font-medium"
             >
               <span className="link-draw link-rest">GitHub</span>
               <span aria-hidden>↗</span>
@@ -87,7 +87,7 @@ export function Hero() {
             data-reveal
             variants={reveal("artifact")}
             style={reducedMotion ? undefined : { y: plateY, opacity: plateOpacity }}
-            className="w-full sm:w-auto lg:w-[360px] lg:shrink-0"
+            className="w-full sm:w-auto lg:w-[440px] lg:shrink-0"
           >
             <Reticle label="FIG. 01 — DETECTION">
               <div className="aspect-[16/9] overflow-hidden bg-raised lg:aspect-[4/3]">

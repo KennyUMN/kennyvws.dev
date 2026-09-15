@@ -6,7 +6,7 @@ export interface TermEntry {
 export const terms = {
   "computer-vision": {
     title: "Semi-Supervised PPE Detection",
-    meta: "YOLOv9 · research, in submission to Automation in Construction",
+    meta: "YOLOv9 · mAP@50 0.614 on the public training log",
   },
   "llm-tooling": {
     title: "RAG eval harness · doc Q&A agent",
@@ -18,7 +18,7 @@ export const terms = {
   },
   "yolo-pipeline": {
     title: "Semi-Supervised PPE Detection",
-    meta: "2025 · Research, in submission",
+    meta: "2025 · Research · manuscript available",
   },
 } as const satisfies Record<string, TermEntry>;
 

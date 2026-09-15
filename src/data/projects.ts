@@ -18,6 +18,9 @@ export interface Project {
   /** Omitted when the work has no public repo — the row then renders without a GitHub link. */
   github?: string;
   paper?: string;
+  /** Numbers copied from the project's own public artifacts. Never invented —
+   *  if there is no verifiable source, the field stays absent. */
+  metrics?: { label: string; value: string }[];
 }
 
 export const projects: Project[] = [
@@ -25,14 +28,22 @@ export const projects: Project[] = [
     title: "Semi-Supervised PPE Detection",
     blurb: "YOLOv9 + pseudo-labeling for construction-site safety gear.",
     description:
-      "Detects hardhats, vests, and missing PPE on construction sites. Uses a semi-supervised pseudo-labeling loop to cut manual annotation, with a confidence-thresholded teacher-student setup. Written up for submission to Automation in Construction.",
+      "Detects hardhats, vests, and missing PPE on construction sites. Uses a semi-supervised pseudo-labeling loop to cut manual annotation, with a confidence-thresholded teacher-student setup. Manuscript and full training log are public.",
     category: "Computer Vision",
     tags: ["YOLOv9", "PyTorch", "Semi-Supervised", "OpenCV"],
     year: "2025",
-    status: "Research, in submission",
+    status: "Research · manuscript available",
     featured: true,
     github: "https://github.com/KennyUMN/ppe-compliance-ssl-yolov9",
     paper: "https://drive.google.com/file/d/1GjKGlQ2XhC3NixaNyOZycBKS09GeofFR/view",
+    // Numbers read from results/training-results.csv (epoch 50) in the public
+    // repo — the same table its README publishes. Verify before editing.
+    metrics: [
+      { label: "mAP@50", value: "0.614" },
+      { label: "Precision", value: "0.704" },
+      { label: "Recall", value: "0.573" },
+      { label: "mAP@50-95", value: "0.409" },
+    ],
   },
   {
     title: "Bandar Tracker",

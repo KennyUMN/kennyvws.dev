@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "motion/react";
 import { SPRING_SNAP } from "@/lib/motion";
 import { cn } from "@/lib/utils";
@@ -18,14 +19,26 @@ interface ReticleProps {
   children: React.ReactNode;
   /** Small mono caption pinned above the frame, e.g. "FIG. 01". */
   label?: string;
-  /** Pulls the corner ticks outward — the frame's one interaction tell. */
+  /** Pulls the corner ticks outward — the frame's one interaction tell.
+   *  Defaults to the frame's own hover/focus state; pass a value only to
+   *  drive it from outside. */
   active?: boolean;
   className?: string;
 }
 
 /** Annotation-tool viewfinder: four hairline corner ticks around any content.
- *  The repeating motif that ties hero, project artifacts, and closing together. */
-export function Reticle({ children, label, active = false, className }: ReticleProps) {
+ *  The repeating motif that ties hero, project artifacts, and closing together.
+ *  The ticks retreat on hover or keyboard focus, so the frame answers the
+ *  pointer the way a real viewfinder does. */
+export function Reticle({
+  children,
+  label,
+  active,
+  className,
+}: ReticleProps) {
+  const [hovered, setHovered] = useState(false);
+  const isActive = active ?? hovered;
+
   return (
     <div className={cn("relative", className)}>
       {label && (
@@ -36,7 +49,13 @@ export function Reticle({ children, label, active = false, className }: ReticleP
           {label}
         </p>
       )}
-      <div className="relative">
+      <div
+        className="relative"
+        onPointerEnter={() => setHovered(true)}
+        onPointerLeave={() => setHovered(false)}
+        onFocus={() => setHovered(true)}
+        onBlur={() => setHovered(false)}
+      >
         {children}
         {CORNERS.map((corner) => (
           <motion.span
@@ -47,8 +66,8 @@ export function Reticle({ children, label, active = false, className }: ReticleP
               corner.cls
             )}
             animate={{
-              x: active ? corner.x * NUDGE : 0,
-              y: active ? corner.y * NUDGE : 0,
+              x: isActive ? corner.x * NUDGE : 0,
+              y: isActive ? corner.y * NUDGE : 0,
             }}
             transition={SPRING_SNAP}
           />

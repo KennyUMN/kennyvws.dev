@@ -35,6 +35,28 @@ test("writing has four placeholder drafts", () => {
   }
 });
 
+test("a project with a public repo carries verifiable metrics", () => {
+  // The PPE row's numbers come from the repo's own training-results.csv.
+  // If the field is dropped, the page silently loses the only hard evidence
+  // on it — this fails instead.
+  const ppe = projects.find((p) => p.github?.includes("ppe-compliance-ssl-yolov9"));
+  expect(ppe).toBeDefined();
+  expect(ppe!.metrics?.length ?? 0).toBeGreaterThan(0);
+  for (const m of ppe!.metrics ?? []) {
+    expect(m.label).toBeTruthy();
+    expect(m.value).toMatch(/^[\d.]+$/);
+  }
+});
+
+test("no project claims a journal submission it cannot back", () => {
+  // The public repo README says "Course project" and the manuscript names no
+  // venue, so "in submission to <journal>" is a claim the artifacts contradict.
+  for (const p of projects) {
+    expect(p.status.toLowerCase()).not.toContain("in submission");
+    expect(p.description.toLowerCase()).not.toContain("submission to");
+  }
+});
+
 test("nav covers the five anchored sections", () => {
   expect(sectionIds).toEqual(["about", "stack", "work", "writing", "contact"]);
   for (const item of navItems) {

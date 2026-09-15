@@ -3,7 +3,7 @@ export const site = {
   role: "AI Engineer · Computer Vision & LLM Systems",
   pitch:
     "I build machine learning systems end to end: computer vision and LLM tooling, from the training loop to the server that keeps it running.",
-  url: "https://kennyvws.dev",
+  url: "https://kennyvws-dev.vercel.app",
   email: "kennyvws1@gmail.com",
   resume: "/resume.pdf",
   socials: {
@@ -15,7 +15,7 @@ export const site = {
 
 export const about = {
   paragraphs: [
-    "I'm Kenny, a Computer Science student at Universitas Multimedia Nusantara heading toward AI engineering. My current research is a semi-supervised YOLOv9 pipeline for detecting personal protective equipment on construction sites, aimed at the journal Automation in Construction.",
+    "I'm Kenny, a Computer Science student at Universitas Multimedia Nusantara heading toward AI engineering. My current research is a semi-supervised YOLOv9 pipeline for detecting personal protective equipment on construction sites, with the manuscript and full training log public on GitHub.",
     "I like the unglamorous parts: cleaning the data, fighting the training run, and getting a model to behave on a real server instead of a demo notebook. I build on a Mac and ship to a Linux homeserver with Docker, so things have to work on both.",
     "If a tool is interesting and I can self-host it, I will.",
   ],

@@ -92,7 +92,11 @@ export const OBJECTS: DetectionObject[] = [
 // sequence, not a synchronized blink.
 export const PHASE_OFFSETS = [0, 0.08, 0.14, 0.32, 0.4, 0.46];
 
-export const CYCLE_MS = 8000;
+// Longer than the 8s a 360px thumbnail needed: at hero size the acquisition
+// reads as a slow scan instead of a flicker, and the held frames carry more
+// of the cycle. The grid is now also the page's own ground, so a calmer
+// loop keeps the two from competing.
+export const CYCLE_MS = 12000;
 export const MAX_DPR = 2;
 
 const HOLD_END = 0.7; // boxes are fully acquired and held until this point in the cycle
@@ -363,12 +367,17 @@ function drawLabel(
   colors: ThemeColors,
   labelT: number,
   siblingBoxes: Rect[],
-  placedLabels: Rect[]
+  placedLabels: Rect[],
+  /** Plate width in CSS px — chip type and padding scale with it so the
+   *  annotation layer reads at hero size without going giant on a 220px
+   *  project thumbnail. Clamped: below ~0.9 the text stops being legible. */
+  plateWidth: number
 ): Rect {
-  ctx.font = "10px ui-monospace, SFMono-Regular, Menlo, monospace";
+  const scale = Math.min(1.6, Math.max(0.9, plateWidth / 420));
+  ctx.font = `${Math.round(10 * scale)}px ui-monospace, SFMono-Regular, Menlo, monospace`;
   const text = `${obj.label} ${obj.confidence.toFixed(2)}`;
-  const paddingX = 6;
-  const chipH = 16;
+  const paddingX = 6 * scale;
+  const chipH = 16 * scale;
   const chipW = ctx.measureText(text).width + paddingX * 2;
 
   const rectFor = (anchor: "above" | "below", dx: number): Rect => ({
@@ -431,7 +440,16 @@ function renderObjects(
     const labelT = easeOutCubic((progress - STROKE_END) / (LABEL_END - STROKE_END));
     if (labelT <= 0) return;
     const siblingBoxes = boxRects.filter((_, j) => j !== i);
-    const rect = drawLabel(ctx, obj, boxRects[i], colors, labelT, siblingBoxes, placedLabels);
+    const rect = drawLabel(
+      ctx,
+      obj,
+      boxRects[i],
+      colors,
+      labelT,
+      siblingBoxes,
+      placedLabels,
+      w
+    );
     placedLabels.push(rect);
   });
 }
