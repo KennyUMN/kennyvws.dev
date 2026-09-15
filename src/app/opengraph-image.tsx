@@ -30,7 +30,9 @@ export default function OpenGraphImage() {
               backgroundColor: "#409cff",
             }}
           />
-          <div style={{ fontSize: 28, color: "#a3a3ad" }}>kennyvws.dev</div>
+          <div style={{ fontSize: 28, color: "#a3a3ad" }}>
+            {site.url.replace(/^https?:\/\//, "")}
+          </div>
         </div>
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div style={{ fontSize: 96, fontWeight: 700, letterSpacing: -4 }}>

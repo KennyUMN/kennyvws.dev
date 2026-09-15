@@ -39,6 +39,18 @@ export function TermPreview({
   useEffect(() => setMounted(true), []);
   const reducedMotion = useReducedMotion();
 
+  // Touch dismissal: with no hover to fall back on, the card has to close on
+  // a tap outside or it stays stuck open. WCAG 1.4.13 wants content-on-demand
+  // to be dismissible without moving the pointer.
+  useEffect(() => {
+    if (!open || canHover()) return;
+    const onDown = (e: PointerEvent) => {
+      if (!triggerRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("pointerdown", onDown);
+    return () => document.removeEventListener("pointerdown", onDown);
+  }, [open]);
+
   const rawX = useMotionValue(0);
   const rawY = useMotionValue(0);
   const springX = useSpring(rawX, SPRING);
@@ -87,12 +99,30 @@ export function TermPreview({
         if (!open || e.pointerType !== "mouse") return;
         place(e.clientX + CURSOR_OFFSET_X, e.clientY + CURSOR_OFFSET_Y, false);
       }}
-      onPointerLeave={() => setOpen(false)}
-      onFocus={() => {
-        if (!canHover()) return;
+      onPointerLeave={(e) => {
+        // On touch there is no leave-into-elsewhere; a touchend fires this and
+        // would close the card the user just opened.
+        if (e.pointerType !== "mouse") return;
+        setOpen(false);
+      }}
+      onPointerUp={(e) => {
+        // Touch opens the card on tap, anchored to the trigger instead of the
+        // (nonexistent) cursor. Pen keeps the hover path — pointer:fine.
+        if (e.pointerType !== "touch") return;
         const rect = triggerRef.current?.getBoundingClientRect();
         if (!rect) return;
+        if (open) {
+          setOpen(false);
+          return;
+        }
         place(rect.left, rect.bottom + 8, true);
+        setOpen(true);
+      }}
+      onFocus={() => {
+        const rect = triggerRef.current?.getBoundingClientRect();
+        if (!rect) return;
+        // Anchored above the trigger when there is no cursor to follow.
+        place(rect.left, canHover() ? rect.bottom + 8 : rect.top - CARD_HEIGHT_ESTIMATE - 8, true);
         setOpen(true);
       }}
       onBlur={() => setOpen(false)}

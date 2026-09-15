@@ -33,16 +33,23 @@ export function Projects() {
                     {project.description}
                   </p>
                   {project.metrics && project.metrics.length > 0 && (
-                    <dl className="mt-4 flex flex-wrap gap-x-6 gap-y-1 font-mono text-xs text-ink-muted">
-                      {project.metrics.map((m) => (
-                        <div key={m.label} className="flex items-baseline gap-1.5">
-                          <dt className="uppercase tracking-[0.14em]">{m.label}</dt>
-                          <dd className="tabular-nums font-medium text-ink">
-                            {m.value}
-                          </dd>
-                        </div>
-                      ))}
-                    </dl>
+                    <div className="mt-4">
+                      <dl className="flex flex-wrap gap-x-6 gap-y-1 font-mono text-xs text-ink-muted">
+                        {project.metrics.map((m) => (
+                          <div key={m.label} className="flex items-baseline gap-1.5">
+                            <dt className="uppercase tracking-[0.14em]">{m.label}</dt>
+                            <dd className="tabular-nums font-medium text-ink">
+                              {m.value}
+                            </dd>
+                          </div>
+                        ))}
+                      </dl>
+                      {project.metricsSource && (
+                        <p className="mt-1.5 font-mono text-[11px] text-ink-muted">
+                          {project.metricsSource}
+                        </p>
+                      )}
+                    </div>
                   )}
                   <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-ink-muted">
                     <p>{[project.category, ...project.tags].join(" · ")}</p>

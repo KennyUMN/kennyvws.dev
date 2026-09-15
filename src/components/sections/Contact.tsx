@@ -27,7 +27,7 @@ export function Contact() {
                       href={href}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex min-h-11 items-center text-[15px] font-medium text-ink-muted transition-colors hover:text-ink"
+                      className="inline-flex min-h-11 min-w-11 items-center justify-center text-[15px] font-medium text-ink-muted transition-colors hover:text-ink"
                     >
                       <span className="link-draw">{label}</span>
                     </a>

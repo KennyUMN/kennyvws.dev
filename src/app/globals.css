@@ -168,15 +168,14 @@ html.theme-fade *::after {
   bottom: -1px; /* draw over the resting hairline */
 }
 
-/* Signature term affordance — only where hover exists. */
-@media (hover: hover) and (pointer: fine) {
-  .term-trigger {
-    text-decoration: underline;
-    text-decoration-style: dotted;
-    text-decoration-thickness: 1px;
-    text-decoration-color: color-mix(in srgb, var(--ink-muted) 70%, transparent);
-    text-underline-offset: 0.25em;
-  }
+/* Signature term affordance. Dotted underline everywhere — on touch it is
+   the only cue that the term opens something, and tapping it does. */
+.term-trigger {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, var(--ink-muted) 70%, transparent);
+  text-underline-offset: 0.25em;
 }
 
 @media (prefers-reduced-motion: reduce) {

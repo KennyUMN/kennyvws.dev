@@ -103,7 +103,7 @@ export function Navbar() {
         >
           <a
             href="#top"
-            className="text-[15px] font-semibold tracking-tight"
+            className="inline-flex min-h-11 items-center text-[15px] font-semibold tracking-tight"
             onClick={() => setOpen(false)}
           >
             Kenny
@@ -147,7 +147,7 @@ export function Navbar() {
               aria-controls="mobile-menu"
               aria-label={open ? "Close menu" : "Open menu"}
               onClick={() => setOpen((v) => !v)}
-              className="flex size-9 flex-col items-center justify-center gap-[5px] rounded-full text-ink"
+              className="flex size-11 flex-col items-center justify-center gap-[5px] rounded-full text-ink"
             >
               <span
                 aria-hidden

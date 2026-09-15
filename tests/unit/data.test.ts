@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { expect, test } from "vitest";
 import { categories, projects } from "@/data/projects";
 import { posts } from "@/data/posts";
@@ -46,6 +47,25 @@ test("a project with a public repo carries verifiable metrics", () => {
     expect(m.label).toBeTruthy();
     expect(m.value).toMatch(/^[\d.]+$/);
   }
+});
+
+test("metrics say which artifact they came from", () => {
+  // The repo log (20% labeled split) and the manuscript (60% labeled) report
+  // different numbers for the same project. Unlabelled metrics next to a link
+  // to the other artifact read as a contradiction, so the source is required.
+  for (const p of projects.filter((p) => p.metrics?.length)) {
+    expect(p.metricsSource).toBeTruthy();
+  }
+});
+
+test("the OG image never hardcodes a domain", async () => {
+  // A hardcoded host there shipped a dead domain in every share card once.
+  const src = await readFile(
+    new URL("../../src/app/opengraph-image.tsx", import.meta.url),
+    "utf8"
+  );
+  expect(src).toMatch(/site\.url/);
+  expect(src).not.toMatch(/kennyvws\.dev/);
 });
 
 test("no project claims a journal submission it cannot back", () => {

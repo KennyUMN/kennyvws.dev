@@ -21,6 +21,9 @@ export interface Project {
   /** Numbers copied from the project's own public artifacts. Never invented —
    *  if there is no verifiable source, the field stays absent. */
   metrics?: { label: string; value: string }[];
+  /** Which artifact the metrics came from. Two public artifacts report
+   *  different runs, so the page has to say which one it is quoting. */
+  metricsSource?: string;
 }
 
 export const projects: Project[] = [
@@ -28,7 +31,7 @@ export const projects: Project[] = [
     title: "Semi-Supervised PPE Detection",
     blurb: "YOLOv9 + pseudo-labeling for construction-site safety gear.",
     description:
-      "Detects hardhats, vests, and missing PPE on construction sites. Uses a semi-supervised pseudo-labeling loop to cut manual annotation, with a confidence-thresholded teacher-student setup. Manuscript and full training log are public.",
+      "Detects hardhats, vests, and missing PPE on construction sites. Uses a semi-supervised pseudo-labeling loop to cut manual annotation, with a confidence-thresholded teacher-student setup. The training log and the manuscript are both public.",
     category: "Computer Vision",
     tags: ["YOLOv9", "PyTorch", "Semi-Supervised", "OpenCV"],
     year: "2025",
@@ -36,14 +39,16 @@ export const projects: Project[] = [
     featured: true,
     github: "https://github.com/KennyUMN/ppe-compliance-ssl-yolov9",
     paper: "https://drive.google.com/file/d/1GjKGlQ2XhC3NixaNyOZycBKS09GeofFR/view",
-    // Numbers read from results/training-results.csv (epoch 50) in the public
-    // repo — the same table its README publishes. Verify before editing.
+    // Read from results/training-results.csv (epoch 50) in the public repo.
+    // The manuscript reports a different run on a 60% labeled split
+    // (mAP@50 0.8368); these are the 20%-labeled repo numbers. Verify before editing.
     metrics: [
       { label: "mAP@50", value: "0.614" },
       { label: "Precision", value: "0.704" },
       { label: "Recall", value: "0.573" },
       { label: "mAP@50-95", value: "0.409" },
     ],
+    metricsSource: "20% labeled split · repo training log, epoch 50",
   },
   {
     title: "Bandar Tracker",
