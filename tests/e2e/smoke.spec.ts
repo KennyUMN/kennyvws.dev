@@ -92,7 +92,7 @@ test.describe("mobile menu focus trap", () => {
     const menuButton = page.getByRole("button", { name: "Open menu" });
 
     await menuButton.click();
-    await expect(page.getByRole("link", { name: "About" })).toBeFocused();
+    await expect(page.getByRole("link", { name: "Work" })).toBeFocused();
 
     for (let i = 0; i < 10; i++) {
       await page.keyboard.press("Tab");

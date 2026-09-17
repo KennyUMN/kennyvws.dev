@@ -77,8 +77,8 @@ test("no project claims a journal submission it cannot back", () => {
   }
 });
 
-test("nav covers the five anchored sections", () => {
-  expect(sectionIds).toEqual(["about", "stack", "work", "writing", "contact"]);
+test("nav covers the four anchored sections", () => {
+  expect(sectionIds).toEqual(["work", "about", "stack", "contact"]);
   for (const item of navItems) {
     expect(item.href).toBe(`#${item.id}`);
   }

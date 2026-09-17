@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 
 interface SignalTraceProps {
   className?: string;
+  static?: boolean;
   /** Two hand-authored curve shapes so repeated ML Systems rows don't read identically. */
   variant?: "smooth" | "noisy";
 }
@@ -41,7 +42,7 @@ const MAX_STEPS = 4000;
  *  viewport is the training step. One stroke, pathLength only, no layout
  *  properties. Colorless — ink/edge tokens only, themed automatically via
  *  currentColor + Tailwind utilities. */
-export function SignalTrace({ className, variant = "smooth" }: SignalTraceProps) {
+export function SignalTrace({ className, variant = "smooth", static: isStatic = false }: SignalTraceProps) {
   const ref = useRef<HTMLDivElement>(null);
   // `useReducedMotion` reads matchMedia synchronously on the client but not
   // during SSR, so branching on it directly would render different pathLength
@@ -53,7 +54,7 @@ export function SignalTrace({ className, variant = "smooth" }: SignalTraceProps)
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
   const reducedMotionValue = useReducedMotion();
-  const reducedMotion = mounted && reducedMotionValue;
+  const showStatic = isStatic || (mounted && reducedMotionValue);
   const curve = CURVES[variant];
 
   // Scroll is the timeline: the plate travels up the viewport, the curve
@@ -101,7 +102,7 @@ export function SignalTrace({ className, variant = "smooth" }: SignalTraceProps)
           opacity={0.4}
         />
 
-        {reducedMotion ? (
+        {showStatic ? (
           <path
             d={curve.path}
             fill="none"
@@ -120,7 +121,13 @@ export function SignalTrace({ className, variant = "smooth" }: SignalTraceProps)
           />
         )}
 
-        {reducedMotion ? (
+        {isStatic && mounted && !reducedMotionValue ? (
+          <motion.circle
+            cx={110} cy={curve.endY} r={2} className="fill-ink"
+            animate={{ opacity: [1, 0.35, 1] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          />
+        ) : showStatic ? (
           <circle cx={110} cy={curve.endY} r={2} className="fill-ink" />
         ) : (
           <motion.circle
@@ -139,7 +146,7 @@ export function SignalTrace({ className, variant = "smooth" }: SignalTraceProps)
       <span className="pointer-events-none absolute bottom-0 right-0 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-muted">
         step{" "}
         <motion.span className="tabular-nums">
-          {reducedMotion ? MAX_STEPS.toLocaleString("en-US") : step}
+          {showStatic ? MAX_STEPS.toLocaleString("en-US") : step}
         </motion.span>
       </span>
     </div>

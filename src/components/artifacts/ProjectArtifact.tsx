@@ -1,6 +1,7 @@
 "use client";
 
-import { motion } from "motion/react";
+import { useEffect, useState } from "react";
+import { motion, useReducedMotion, type Variants } from "motion/react";
 import type { ProjectCategory } from "@/data/projects";
 import { DUR_BASE, EASE_OUT_SOFT } from "@/lib/motion";
 import {
@@ -20,9 +21,10 @@ interface ProjectArtifactProps {
   /** 0-based position in the projects list — the hero owns FIG. 01, so
    *  figures here continue the sequence from 02. */
   index: number;
-  /** Used only to deterministically vary SignalTrace's curve shape so two
-   *  ML Systems rows never render as identical plates. */
+  /** Used only for deterministic SignalTrace curve-shape variation. */
   title: string;
+  kind?: string;
+  caption?: string;
   className?: string;
 }
 
@@ -39,7 +41,23 @@ const SUFFIX: Record<ProjectCategory, string> = {
   "ML Systems": "TRACE",
 };
 
-// --- Computer Vision: a small static detection diagram --------------------
+// --- Computer Vision: a lightweight looping acquisition diagram -----------
+const ACQUISITION: Variants = {
+  acquired: { opacity: 1, scale: 1, transition: { duration: 0 } },
+  cycle: (delay: number) => ({
+    opacity: [0, 1, 1, 0, 0],
+    scale: [0.94, 1, 1, 0.98, 0.94],
+    transition: {
+      duration: 4,
+      times: [0, 0.2, 0.825, 0.95, 1],
+      ease: EASE_OUT_SOFT,
+      delay,
+      repeat: Infinity,
+      repeatDelay: 2,
+    },
+  }),
+};
+
 // Deliberately not the hero's canvas — a lightweight SVG version of the same
 // visual language: the same constructed person silhouette (geometry shared
 // with the hero via personGeometry.ts, translated to SVG path commands
@@ -100,6 +118,11 @@ interface ThumbDetection {
 }
 
 function DetectionDiagram() {
+  const [mounted, setMounted] = useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => setMounted(true), []);
+  const reducedMotionValue = useReducedMotion();
+  const reducedMotion = !mounted || reducedMotionValue;
   const geo = computePersonGeometry(THUMB_PERSON_BOX, "a");
   const { person, head, torso } = personBoundingBoxes(geo, THUMB_BOX_MARGIN);
   const torsoPath = segmentsToSvgPath(personTorsoPath(geo));
@@ -137,10 +160,10 @@ function DetectionDiagram() {
         return (
           <motion.g
             key={`${d.box.x}-${d.box.y}`}
-            initial={{ opacity: 0, scale: 0.94 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true, margin: "-64px 0px" }}
-            transition={{ duration: DUR_BASE, ease: EASE_OUT_SOFT, delay: i * 0.12 }}
+            initial={false}
+            variants={ACQUISITION}
+            custom={i * 0.18}
+            animate={reducedMotion ? "acquired" : "cycle"}
           >
             <rect
               x={d.box.x + 0.5}
@@ -162,7 +185,14 @@ function DetectionDiagram() {
               />
             ))}
             {text && (
-              <>
+              <motion.g
+                initial={false}
+                animate={reducedMotion ? { opacity: 1 } : { opacity: [0, 0, 1, 1, 0, 0] }}
+                transition={reducedMotion ? { duration: 0 } : {
+                  duration: 4, times: [0, 0.14, 0.24, 0.825, 0.95, 1],
+                  delay: i * 0.18, repeat: Infinity, repeatDelay: 2, ease: EASE_OUT_SOFT,
+                }}
+              >
                 <rect
                   x={chipX}
                   y={chipY}
@@ -180,7 +210,7 @@ function DetectionDiagram() {
                 >
                   {text}
                 </text>
-              </>
+              </motion.g>
             )}
           </motion.g>
         );
@@ -189,18 +219,68 @@ function DetectionDiagram() {
   );
 }
 
+const CANDLES = [
+  { path: "M40 140v-50M35 122h10", x: 32, y: 112, height: 26 },
+  { path: "M75 110v-46M70 92h10", x: 67, y: 82, height: 30 },
+  { path: "M110 96v-42M105 78h10", x: 102, y: 66, height: 22 },
+  { path: "M145 84v-44M140 66h10", x: 137, y: 58, height: 26 },
+  { path: "M180 70v-40M175 54h10", x: 172, y: 46, height: 20 },
+  { path: "M215 58v-36M210 44h10", x: 207, y: 38, height: 18 },
+  { path: "M250 52v-34M245 38h10", x: 242, y: 32, height: 16 },
+];
+
+function MarketFlowDiagram() {
+  const [mounted, setMounted] = useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => setMounted(true), []);
+  const reducedMotionValue = useReducedMotion();
+  const reducedMotion = mounted && reducedMotionValue;
+  return (
+    <svg viewBox="0 0 300 200" className="h-full w-full" aria-hidden="true" focusable="false">
+      <path d="M0 40H300M0 80H300M0 120H300M0 160H300" className="stroke-edge" strokeWidth={0.5} opacity={0.7} />
+      <g className="stroke-ink" strokeWidth={1}>
+        {CANDLES.map((candle, i) => (
+          <motion.g
+            key={candle.x}
+            style={{ originY: 1, transformBox: "fill-box" }}
+            initial={{ opacity: 0, scaleY: 0 }}
+            animate={reducedMotion ? { opacity: 1, scaleY: 1 } : undefined}
+            whileInView={reducedMotion ? undefined : { opacity: 1, scaleY: 1 }}
+            viewport={{ once: true, margin: "-64px 0px" }}
+            transition={reducedMotion ? { duration: 0 } : { duration: DUR_BASE, ease: EASE_OUT_SOFT, delay: i * 0.12 }}
+          >
+            <motion.g
+              initial={false}
+              whileInView={mounted && !reducedMotion && i >= CANDLES.length - 3 ? { opacity: [1, 0.8, 1] } : { opacity: 1 }}
+              viewport={{ once: true }}
+              transition={mounted && !reducedMotion ? { duration: 3, repeat: Infinity, delay: DUR_BASE + i * 0.12, ease: "easeInOut" } : { duration: 0 }}
+            >
+              <path d={candle.path} fill="none" />
+              <rect x={candle.x} y={candle.y} width={16} height={candle.height}
+                fill={i % 2 ? "none" : undefined} className={i % 2 ? undefined : "fill-ink"} opacity={i % 2 ? 1 : 0.8} />
+            </motion.g>
+          </motion.g>
+        ))}
+      </g>
+      <text x="8" y="192" className="fill-ink-muted font-mono text-[8.5px]">ACCUMULATION / DISTRIBUTION FLOW</text>
+    </svg>
+  );
+}
+
 /** Maps a project's category to its inline evidence artifact, wrapped in the
  *  site's signature Reticle frame so the motif repeats down the work list. */
-export function ProjectArtifact({ category, index, title, className }: ProjectArtifactProps) {
-  const label = `FIG. ${String(index + 2).padStart(2, "0")} — ${SUFFIX[category]}`;
+export function ProjectArtifact({ category, index, title, kind, caption, className }: ProjectArtifactProps) {
+  const label = `FIG. ${String(index + 2).padStart(2, "0")} — ${kind === "market-data flow" ? "MARKET" : SUFFIX[category]}${kind ? ` · ${kind}` : ""}`;
 
   let content: React.ReactNode;
   switch (category) {
     case "ML Systems":
-      content = <SignalTrace variant={titleParity(title) === 0 ? "smooth" : "noisy"} />;
+      content = kind === "market-data flow"
+        ? <MarketFlowDiagram />
+        : <SignalTrace static={kind === "training-loss trace"} variant={titleParity(title) === 0 ? "smooth" : "noisy"} />;
       break;
     case "LLM / Agents":
-      content = <TokenStream />;
+      content = <TokenStream caption={caption} />;
       break;
     case "Computer Vision":
       content = <DetectionDiagram />;
@@ -208,13 +288,20 @@ export function ProjectArtifact({ category, index, title, className }: ProjectAr
   }
 
   return (
-    <Reticle label={label} className={className}>
-      <div
-        data-testid="project-artifact"
-        className="aspect-[4/3] w-full overflow-hidden bg-raised"
-      >
-        {content}
-      </div>
-    </Reticle>
+    <>
+      <Reticle label={label} className={className}>
+        <div
+          data-testid="project-artifact"
+          className="aspect-[4/3] w-full overflow-hidden bg-raised"
+        >
+          {content}
+        </div>
+      </Reticle>
+      {(category === "ML Systems" || category === "LLM / Agents") && (
+        <p className="mt-1.5 font-mono text-[10px] tracking-wide text-ink-muted">
+          ILLUSTRATIVE — NOT PROJECT OUTPUT
+        </p>
+      )}
+    </>
   );
 }

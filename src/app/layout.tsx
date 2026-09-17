@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Geist, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { MotionConfig } from "motion/react";
 import { site } from "@/data/site";
@@ -8,6 +8,12 @@ import "./globals.css";
 const geist = Geist({
   subsets: ["latin"],
   variable: "--font-geist-sans",
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains-mono",
   display: "swap",
 });
 
@@ -37,7 +43,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geist.variable} bg-surface font-sans text-ink antialiased`}>
+      <body className={`${geist.variable} ${jetbrainsMono.variable} bg-surface font-sans text-ink antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <MotionConfig reducedMotion="user">
             <a

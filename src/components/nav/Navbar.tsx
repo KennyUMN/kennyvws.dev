@@ -103,7 +103,7 @@ export function Navbar() {
         >
           <a
             href="#top"
-            className="inline-flex min-h-11 items-center text-[15px] font-semibold tracking-tight"
+            className="inline-flex min-h-11 items-center font-mono text-[13px] font-medium uppercase tracking-[0.12em]"
             onClick={() => setOpen(false)}
           >
             Kenny
@@ -111,16 +111,19 @@ export function Navbar() {
 
           {/* Desktop */}
           <div className="hidden items-center gap-1 md:flex">
-            {navItems.map((item) => (
+            {navItems.map((item, i) => (
               <a
                 key={item.id}
                 href={item.href}
                 aria-current={active === item.id ? "true" : undefined}
                 className={cn(
-                  "px-3 py-1.5 text-sm transition-colors",
+                  "inline-flex min-h-11 items-center px-2 font-mono text-[11px] uppercase tracking-[0.14em] transition-colors",
                   active === item.id ? "text-ink" : "text-ink-muted hover:text-ink"
                 )}
               >
+                <span aria-hidden className="mr-1.5 text-ink-muted/60">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
                 <span className={cn("link-draw", active === item.id && "link-active")}>
                   {item.label}
                 </span>
@@ -128,7 +131,7 @@ export function Navbar() {
             ))}
             <a
               href={site.resume}
-              className="ml-1 px-3 py-1.5 text-sm text-ink-muted transition-colors hover:text-ink"
+              className="ml-1 inline-flex min-h-11 items-center px-2 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-muted transition-colors hover:text-ink"
             >
               <span className="link-draw">Resume</span>
             </a>
@@ -183,7 +186,7 @@ export function Navbar() {
                     key={item.id}
                     href={item.href}
                     onClick={() => setOpen(false)}
-                    className="block rounded-xl px-4 py-3 text-lg font-medium transition-colors hover:bg-surface-muted"
+                    className="block rounded-xl px-4 py-3 font-mono text-lg font-medium uppercase tracking-[0.08em] transition-colors hover:bg-surface-muted"
                   >
                     {item.label}
                   </a>
@@ -191,7 +194,7 @@ export function Navbar() {
                 <a
                   href={site.resume}
                   onClick={() => setOpen(false)}
-                  className="block rounded-xl px-4 py-3 text-lg font-medium text-ink-muted transition-colors hover:bg-surface-muted"
+                  className="block rounded-xl px-4 py-3 font-mono text-lg font-medium uppercase tracking-[0.08em] text-ink-muted transition-colors hover:bg-surface-muted"
                 >
                   Resume
                 </a>

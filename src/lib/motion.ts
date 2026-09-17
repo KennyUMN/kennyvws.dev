@@ -13,18 +13,16 @@ export const DUR_SLOW = 0.9;
 
 export type RevealRole = "heading" | "body" | "artifact";
 
-/** Role-specific entrances. Headings wipe, body copy lifts, artifacts settle —
+/** Role-specific entrances. Headings lift, body copy lifts, artifacts settle —
  *  so a section reads as a composition rather than one animation applied N times. */
 export function reveal(role: RevealRole = "body", delay = 0): Variants {
   switch (role) {
     case "heading":
       return {
-        // Negative block insets keep ascenders/descenders unclipped at rest.
-        hidden: { opacity: 0, y: 12, clipPath: "inset(-20% 0 100% 0)" },
+        hidden: { opacity: 0, y: 12 },
         show: {
           opacity: 1,
           y: 0,
-          clipPath: "inset(-20% 0 -20% 0)",
           transition: { duration: DUR_SLOW, delay, ease: EASE_OUT },
         },
       };

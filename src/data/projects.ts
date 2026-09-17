@@ -24,7 +24,17 @@ export interface Project {
   /** Which artifact the metrics came from. Two public artifacts report
    *  different runs, so the page has to say which one it is quoting. */
   metricsSource?: string;
+  /** Honest plate caption — what the artifact actually depicts. */
+  artifactKind?: string;
+  /** Mono caption inside a TokenStream plate, so two LLM plates never read
+   *  identically. Describes the project's own pipeline, not generic tokens. */
+  artifactCaption?: string;
 }
+
+export const trainingTrace = {
+  label: "FIG. 07 — TRAINING TRACE",
+  provenance: "Scroll maps to training step · illustrative trace · repo: ppe-compliance-ssl-yolov9",
+};
 
 export const projects: Project[] = [
   {
@@ -60,6 +70,7 @@ export const projects: Project[] = [
     year: "2025",
     status: "Active",
     featured: true,
+    artifactKind: "market-data flow",
     // Repo is private (BACKUP-BANDAR-TRACKER) — no public link to give.
   },
   {
@@ -69,6 +80,7 @@ export const projects: Project[] = [
       "A reproducible harness that scores retrieval-augmented pipelines with RAGAS, runs against local models through Ollama, and tracks faithfulness and context-recall across config changes so regressions are caught early.",
     category: "LLM / Agents",
     tags: ["LlamaIndex", "RAGAS", "Ollama", "Evaluation"],
+    artifactCaption: "RAGAS · FAITHFULNESS · CTX-RECALL",
     year: "2025",
     status: "Active",
     // No public repo yet.
@@ -82,6 +94,7 @@ export const projects: Project[] = [
     tags: ["PyTorch", "Transformers", "Tokenizers"],
     year: "2024",
     status: "Complete",
+    artifactKind: "training-loss trace",
     // No public repo yet.
   },
   {
@@ -91,6 +104,7 @@ export const projects: Project[] = [
       "A local-first retrieval agent over personal documents. Chunking and hybrid search with citations back to the source page, so answers are checkable instead of vibes.",
     category: "LLM / Agents",
     tags: ["LangChain", "FastAPI", "Hugging Face", "RAG"],
+    artifactCaption: "QUERY → CHUNK → HYBRID SEARCH → ANSWER[1]",
     year: "2025",
     status: "Active",
     github: "https://github.com/KennyUMN/finrag-id",

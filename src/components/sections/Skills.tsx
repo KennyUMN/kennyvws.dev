@@ -4,12 +4,14 @@ import { Section } from "@/components/ui/Section";
 
 export function Skills() {
   return (
-    <Section id="stack" title="Tools I actually use.">
-      <div className="grid gap-x-12 gap-y-10 sm:grid-cols-2">
+    <Section id="stack" title="Tools I actually use." index={3}>
+      <div className="grid grid-cols-2 gap-px border border-edge bg-edge lg:grid-cols-4">
         {skillGroups.map((group, i) => (
-          <Reveal key={group.category} delay={i * 0.06}>
-            <div className="border-t border-edge pt-6">
-              <h3 className="text-[15px] font-semibold">{group.category}</h3>
+          <div key={group.category} className="h-full bg-surface p-5">
+            <Reveal delay={i * 0.06} variant="body">
+              <h3 className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-ink-muted">
+                {group.category}
+              </h3>
               <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-2">
                 {group.items.map(({ name, icon: Icon }) => (
                   <li
@@ -21,8 +23,8 @@ export function Skills() {
                   </li>
                 ))}
               </ul>
-            </div>
-          </Reveal>
+            </Reveal>
+          </div>
         ))}
       </div>
     </Section>
