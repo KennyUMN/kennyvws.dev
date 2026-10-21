@@ -30,13 +30,17 @@ result gets an independent critic and a fix round instead of my own judgment alo
 1. Data. Import the real PPE training log and the ablation numbers from the public repo.
 2. Direction. Research award-winning portfolios in parallel with three competing hero prototypes
    (three different models, three concepts). Pick or graft one.
-3. Spec. Tokens, type, layout family per section, motion rules. Written to `DESIGN.md`.
+3. Spec. Tokens, type, layout family per section, motion rules. Recorded in `CLAUDE.md` (Design Constraints) instead of a separate `DESIGN.md`.
 4. Foundation. Fonts, tokens, global styles, layout shell. Remove components the new design orphans.
 5. Hero. Port the winning concept, with a static final frame for reduced motion.
-6. Work. PPE case study driven by real data, Bandar Tracker feature, compact index of the rest.
+6. Work. PPE case study driven by real data, FinRAG-ID pipeline feature (Bandar Tracker until the first critique), compact index of the rest.
 7. About, stack, contact, footer, navigation.
 8. Tests. Rewrite the e2e suite for the new structure, keep the data invariants.
 9. Visual QA. Screenshots at every breakpoint in both themes, fix, repeat.
-10. Independent critique on a different model, then a fix round.
+10. Independent critique in a fresh agent, then a fix round. Done twice (`critique-1.md`, `critique-2.md`). Both critics and the code reviewer ran on the same model family as the author, so they are fresh-context reviews, not cross-model ones.
 11. Performance and accessibility pass, OG image refresh.
 12. Code review, cleanup, local commit.
+
+## Evidence
+
+Rows in `decisions.tsv` that point into `scratchpad/` refer to a temporary folder from the build session; screenshots, Lighthouse JSON and prototypes there are not kept. The two design critiques are copied here. Everything else can be regenerated: `npm run e2e` rewrites `screenshots/`, and the tests in `tests/` encode each fixed bug.
