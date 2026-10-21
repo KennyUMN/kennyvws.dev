@@ -65,3 +65,20 @@ for (const reducedMotion of ["no-preference", "reduce"] as const) {
     });
   });
 }
+
+test.describe("narrow screens with motion on", () => {
+  test.use({ viewport: { width: 320, height: 720 }, contextOptions: { reducedMotion: "no-preference" } });
+
+  test("headings that wrap to two lines still reveal", async ({ page }) => {
+    await page.goto("/");
+    await page.evaluate(() => (document.documentElement.style.scrollBehavior = "auto"));
+    const lines = page.locator("#work-heading [data-reveal], #contact-heading [data-reveal]");
+    await expect(lines).toHaveCount(4);
+    for (const line of await lines.all()) {
+      await line.evaluate((el) => el.closest("h2")!.scrollIntoView({ block: "center" }));
+      await expect
+        .poll(() => line.evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).m42), { timeout: 4000 })
+        .toBe(0);
+    }
+  });
+});

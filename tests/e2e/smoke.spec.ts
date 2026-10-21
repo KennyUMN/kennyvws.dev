@@ -126,3 +126,43 @@ for (const width of [320, 375, 768, 1024, 1440, 1920]) {
     expect(overflow).toBe(0);
   });
 }
+
+test.describe("canvases follow the page", () => {
+  test.use({ colorScheme: "light" });
+
+  test("the sign-off redraws in the new theme's ink after a toggle", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByTestId("signoff")).toHaveAttribute("data-state", "ready");
+    await page.evaluate(() => window.scrollTo({ top: document.body.scrollHeight, behavior: "instant" }));
+    await page.getByTestId("theme-toggle").first().click();
+    await expect(page.locator("html")).toHaveClass(/dark/);
+    // Dark ink is near white; read the brightest opaque dot on the plate.
+    await expect
+      .poll(() =>
+        page.evaluate(() => {
+          const c = document.querySelector<HTMLCanvasElement>('[data-testid="signoff"] canvas')!;
+          const d = c.getContext("2d")!.getImageData(0, 0, c.width, c.height).data;
+          let red = 0;
+          for (let i = 3; i < d.length; i += 4 * 5) if (d[i] > 200) red = Math.max(red, d[i - 3]);
+          return red;
+        }),
+      )
+      .toBeGreaterThan(200);
+  });
+
+  test("a resize during the hero intro re-lays the filter at the new width", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/");
+    const headline = page.getByTestId("sobel-headline");
+    await expect(headline.locator(".w-px.bg-accent")).toHaveCSS("opacity", "1");
+    await page.setViewportSize({ width: 900, height: 900 });
+    await expect(headline).toHaveAttribute("data-state", "live", { timeout: 15_000 });
+    const sizes = await headline.evaluate((el) => ({
+      h1: el.querySelector("h1")!.getBoundingClientRect().width,
+      plate: (el.querySelector("[aria-hidden]") as HTMLElement).getBoundingClientRect().width,
+      overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    }));
+    expect(sizes.overflow).toBe(0);
+    expect(sizes.plate - sizes.h1).toBeLessThan(80);
+  });
+});

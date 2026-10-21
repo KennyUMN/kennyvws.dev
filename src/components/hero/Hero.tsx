@@ -7,7 +7,6 @@ import { ButtonLink } from "@/components/ui/ButtonLink";
 import { SobelHeadline } from "./SobelHeadline";
 
 const lead = projects.find((p) => p.featured && p.ablation);
-const [, supervised, semi] = lead?.ablation?.rows ?? [];
 
 export function Hero() {
   const [stat, setStat] = useState<string | null>(null);
@@ -16,12 +15,12 @@ export function Hero() {
     <section id="top" aria-labelledby="hero-heading" className="flex min-h-[100dvh] flex-col pt-16">
       <div className="mx-auto grid w-full max-w-[1440px] flex-1 grid-rows-[1fr_auto] px-5 sm:px-8 lg:px-12">
         <div className="self-center py-12 sm:py-16">
-          <p className="font-mono text-[12px] text-ink-2 sm:text-[13px]">{site.role}</p>
+          <p className="text-balance font-mono text-[12px] text-ink-2 sm:text-[13px]">{site.role}</p>
           <SobelHeadline
             id="hero-heading"
             text={site.pitch}
             onMeasured={setStat}
-            className="mt-7 max-w-[15.5em] text-balance text-[clamp(2.3rem,0.75rem+5.85vw,5.75rem)] font-[560] leading-[1.02] tracking-[-0.032em]"
+            className="mt-7 max-w-[17em] text-balance text-[clamp(2.3rem,0.75rem+5.2vw,5rem)] font-[560] leading-[1.02] tracking-[-0.032em]"
           />
           <div className="mt-10 flex flex-wrap items-center gap-3">
             <ButtonLink href="#work" variant="ink">
@@ -43,17 +42,14 @@ export function Hero() {
               A 3×3 Sobel filter, run in your browser over{" "}
               <span className="font-mono text-[0.9em] tabular-nums text-ink">{stat ?? "its rendered glyphs"}</span>.{" "}
               <span className="pointer-coarse:hidden">Point at the headline to slide the window.</span>
-              <span className="hidden pointer-coarse:inline">Tap the headline to move the window.</span>
+              <span className="hidden pointer-coarse:inline">Tap the headline to open the filter window there.</span>
             </dd>
           </div>
-          {lead && supervised && semi && (
+          {lead?.ablation && (
             <div>
               <dt className="mb-1 font-mono text-[11px] text-ink-3">Selected work</dt>
               <dd>
-                <span className="text-ink">{lead.title}.</span> Pseudo-labeling lifts YOLOv9 from{" "}
-                <span className="font-mono text-[0.9em] text-ink">{supervised.value.toFixed(3)}</span> to{" "}
-                <span className="font-mono text-[0.9em] text-ink">{semi.value.toFixed(3)}</span> {lead.ablation?.metric} on
-                the same {semi.labeledShare} of labels.{" "}
+                <span className="text-ink">{lead.title}.</span> {lead.ablation.claim}{" "}
                 <a href="#work" className="font-medium text-ink underline decoration-ink/30 underline-offset-4 transition-colors hover:decoration-ink">
                   Read the case study
                 </a>

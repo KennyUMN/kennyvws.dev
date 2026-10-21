@@ -19,20 +19,6 @@ export const about = {
     "I like the unglamorous parts: cleaning the data, fighting the training run, and getting a model to behave on a real server instead of a demo notebook. I build on a Mac and ship to a Linux homeserver with Docker, so things have to work on both.",
     "If a tool is interesting and I can self-host it, I will.",
   ],
-  facts: [
-    {
-      title: "Training",
-      body: "I train and debug models myself, not just call an API. Vision, tabular, and small transformers.",
-    },
-    {
-      title: "Shipping",
-      body: "Models that stay on a laptop don't count. I package, serve, and monitor what I build.",
-    },
-    {
-      title: "Writing",
-      body: "I document what I learn. If a paper is interesting and the code is messy, I port it and write it up.",
-    },
-  ],
 } as const;
 
 export const contact = {

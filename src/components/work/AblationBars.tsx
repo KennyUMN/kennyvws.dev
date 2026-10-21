@@ -7,9 +7,6 @@ import { EASE_OUT } from "@/lib/motion";
 const SCALE_MAX = 0.7;
 
 export function AblationBars({ ablation }: { ablation: NonNullable<Project["ablation"]> }) {
-  const [, baseline, best] = ablation.rows;
-  const gain = (best.value - baseline.value).toFixed(3);
-
   return (
     <figure className="flex flex-col gap-5">
       <ul className="flex flex-col gap-4">
@@ -36,8 +33,8 @@ export function AblationBars({ ablation }: { ablation: NonNullable<Project["abla
           </li>
         ))}
       </ul>
-      <figcaption className="text-sm text-ink-2">
-        Same {best.labeledShare} of hand labels, +{gain} {ablation.metric} once the baseline pseudo-labels the rest.
+      <figcaption className="text-sm leading-relaxed text-ink-2">
+        {ablation.checkpoint}
         <span className="mt-1 block font-mono text-[11px] text-ink-3">{ablation.source}</span>
       </figcaption>
     </figure>

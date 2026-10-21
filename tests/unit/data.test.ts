@@ -83,3 +83,29 @@ test("nav covers the four anchored sections", () => {
     expect(item.href).toBe(`#${item.id}`);
   }
 });
+
+test("the PPE numbers on the page agree with the imported training log", async () => {
+  // The ablation's semi-supervised value is quoted as the log's best epoch and the
+  // headline metrics as its final epoch; a re-import of a new run must fail here first.
+  const { ppeTraining } = await import("@/data/ppeTraining");
+  const ppe = projects.find((p) => p.ablation)!;
+  const best = Math.max(...ppeTraining.map((e) => e.map50));
+  const final = ppeTraining[ppeTraining.length - 1];
+  const semi = ppe.ablation!.rows.find((r) => r.semiSupervised)!;
+  expect(semi.value).toBe(Number(best.toFixed(3)));
+  const metric = (label: string) => ppe.metrics!.find((m) => m.label === label)!.value;
+  expect(metric("mAP@50")).toBe(final.map50.toFixed(3));
+  expect(metric("Precision")).toBe(final.precision.toFixed(3));
+  expect(metric("Recall")).toBe(final.recall.toFixed(3));
+  expect(metric("mAP@50-95")).toBe(final.map5095.toFixed(3));
+});
+
+test("the ablation sentences quote the ablation rows", () => {
+  const ablation = projects.find((p) => p.ablation)!.ablation!;
+  const semi = ablation.rows.find((r) => r.semiSupervised)!;
+  const baseline = ablation.rows.find((r) => !r.semiSupervised && r.labeledShare === semi.labeledShare)!;
+  for (const quoted of [baseline.value.toFixed(3), semi.value.toFixed(3), semi.labeledShare, ablation.metric]) {
+    expect(ablation.claim).toContain(quoted);
+  }
+  expect(ablation.gainCaption).toContain(semi.labeledShare);
+});

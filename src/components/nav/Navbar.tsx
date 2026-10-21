@@ -23,8 +23,12 @@ export function Navbar() {
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
+    // While the sheet covers the page, the page behind it leaves the accessibility tree.
+    const behind = [document.getElementById("main"), document.querySelector("footer")];
+    behind.forEach((el) => el?.toggleAttribute("inert", open));
     return () => {
       document.body.style.overflow = "";
+      behind.forEach((el) => el?.removeAttribute("inert"));
     };
   }, [open]);
 
@@ -103,11 +107,8 @@ export function Navbar() {
                 </li>
               ))}
             </ul>
-            <a
-              href={site.resume}
-              className="inline-flex min-h-11 items-center border border-ink/20 px-3.5 text-[14px] font-medium transition-colors hover:border-ink hover:bg-ink hover:text-surface"
-            >
-              Résumé
+            <a href={site.resume} className="inline-flex min-h-11 items-center text-[14px] font-medium text-ink">
+              <span className="link-draw link-rest">Résumé</span>
             </a>
             <ThemeToggle />
           </div>

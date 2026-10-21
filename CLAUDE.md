@@ -19,9 +19,9 @@ All copy and every number live in data files. Components hardcode only section h
 
 ### Sections (feature folders under `src/components/`)
 - `hero/Hero.tsx` and `hero/SobelHeadline.tsx`: the H1 is real text; a canvas rasterizes it at the DOM word positions, runs a 3x3 Sobel filter, sweeps an intro scan, then a stride-snapped lens follows the pointer and reports edge density from a summed-area table. Sets `data-state="live"` when settled.
-- `work/`: `CaseStudy` (PPE), `TrainingCurve` (scroll-scrubbed mAP@50 by epoch, crosshair tooltip, table view), `AblationBars`, `PipelineFeature` (Bandar Tracker, private repo, so a pipeline diagram instead of output), `WorkIndex` (the remaining projects).
+- `work/`: `CaseStudy` (PPE), `TrainingCurve` (scroll-scrubbed mAP@50 by epoch, crosshair tooltip, table view), `AblationBars`, `PipelineFeature` (FinRAG-ID, the featured LLM project, drawn as its pipeline), `WorkIndex` (the remaining projects; `privateRepo` decides between "Private repository" and "No public repo yet").
 - `about/`, `stack/`, `contact/Contact.tsx`.
-- `contact/Signoff.tsx` in the footer: halftone wordmark, cosine-schedule forward process run backwards; scroll progress to the page end is the timestep, the pointer re-noises locally. Sets `data-state="ready"`.
+- `contact/Signoff.tsx` in the footer: ink halftone wordmark, the closed-form forward process played backwards on a cosine schedule (no denoiser, so never call it reverse diffusion); scroll progress to the page end is the timestep, the pointer re-noises locally. Sets `data-state="ready"`.
 - `nav/Navbar.tsx` with the mobile sheet (focus trap, scroll lock) and `nav/ThemeToggle.tsx` (circular view-transition wipe).
 
 ### UI Primitives (`src/components/ui/`)
@@ -55,10 +55,12 @@ Run a single unit test: `npx vitest run tests/unit/data.test.ts`
 
 ## Design Constraints (Non-Negotiable)
 
-- One accent, safety orange (`--accent`). It marks computed output and the single primary action: Sobel edges and scan line, the training curve and its markers, the semi-supervised ablation bar, the sign-off's still-noisy dots, the contact email button, the status dot, the focus ring and selection. Nothing decorative.
+- One accent, safety orange (`--accent`). It marks computed output and the single primary action: Sobel edges and scan line, the training curve and its markers, the semi-supervised ablation bar, the contact email button, the status dot, the focus ring and selection. Nothing decorative.
 - Every number on the page comes from `src/data` and names its source artifact. Never invent or round up a result.
 - No em or en dashes in visible copy.
 - Sharp corners everywhere. Circles only for data markers and the status dot.
+- Labels are sentence-case Martian Mono. Never uppercase them: it turns mAP into MAP.
+- Say each number once per view, and name the checkpoint a number comes from.
 - Links signal with the drawn underline, not colour. Standalone text links use `TextLink` (44px hit area); inline links inside sentences are exempt.
 - The hero H1 equals `site.pitch` verbatim.
 - Reduced motion shows final states. Any element with an initial offset, opacity or scale gets `data-reveal` so the CSS override in `globals.css` applies even before it scrolls into view.
@@ -67,6 +69,6 @@ Run a single unit test: `npx vitest run tests/unit/data.test.ts`
 
 ## Testing
 
-- Unit tests (Vitest): `tests/unit/` cover data integrity (five projects, two featured, metrics carry a source, no unsupported claims) and utils.
+- Unit tests (Vitest): `tests/unit/` cover data integrity (five projects, two featured, metrics carry a source, no unsupported claims, PPE numbers agree with the imported training log) and utils.
 - E2E tests (Playwright): `tests/e2e/smoke.spec.ts` (H1, lens, nav, résumé, theme, work list, chart table, contact, mobile focus trap, tap targets, no horizontal scroll from 320 to 1920), `motion.spec.ts` (scroll-scrubbed epochs and sign-off timestep, with and without reduced motion), `screenshots.spec.ts` (full-page captures at 320, 768, 1024, 1440 in both themes, written to the git-ignored `screenshots/`).
 - E2E base URL: `http://localhost:3100` (the config builds and starts the server itself).

@@ -1,9 +1,10 @@
-export type ProjectCategory = "Computer Vision" | "LLM / Agents" | "ML Systems";
+export type ProjectCategory = "Computer Vision" | "LLM / Agents" | "ML Systems" | "Data Systems";
 
 export const categories: ProjectCategory[] = [
   "Computer Vision",
   "LLM / Agents",
   "ML Systems",
+  "Data Systems",
 ];
 
 export interface Project {
@@ -17,6 +18,8 @@ export interface Project {
   featured?: boolean;
   /** Omitted when the work has no public repo — the row then renders without a GitHub link. */
   github?: string;
+  /** The code exists but the repo is private, so there is nothing to link. */
+  privateRepo?: boolean;
   paper?: string;
   /** Numbers copied from the project's own public artifacts. Never invented —
    *  if there is no verifiable source, the field stays absent. */
@@ -30,6 +33,12 @@ export interface Project {
   ablation?: {
     metric: string;
     source: string;
+    /** Which checkpoint the reported numbers are, so a reader sees the selection rule. */
+    checkpoint: string;
+    /** One-sentence result for the hero strip. Its numbers are tested against `rows`. */
+    claim: string;
+    /** Caption under the gain figure. */
+    gainCaption: string;
     rows: { label: string; labeledShare: string; value: number; semiSupervised: boolean }[];
   };
 }
@@ -69,6 +78,9 @@ export const projects: Project[] = [
     ablation: {
       metric: "mAP@50",
       source: "Ablation study · results/grafik_ablation_study.png",
+      checkpoint: "The semi-supervised 0.621 matches the best epoch (40) of the training log above. The final epoch reads 0.614.",
+      claim: "Pseudo-labeling lifts YOLOv9 from 0.493 to 0.621 mAP@50 on the same 20% of labels.",
+      gainCaption: "mAP@50 gained by pseudo-labeling at the best epoch, with the labeling budget held at 20%.",
       rows: [
         { label: "Supervised", labeledShare: "10%", value: 0.371, semiSupervised: false },
         { label: "Supervised", labeledShare: "20%", value: 0.493, semiSupervised: false },
@@ -77,15 +89,34 @@ export const projects: Project[] = [
     },
   },
   {
+    title: "FinRAG-ID",
+    blurb: "Cited answers from Indonesian financial reports.",
+    description:
+      "A local-first RAG pipeline over Indonesian annual reports, prospectuses and financial statements. Hybrid retrieval fuses Sastrawi BM25 with BGE-M3 dense search, Llama 3.1 8B answers through Ollama with an OpenRouter fallback, and every answer cites the pages it used.",
+    category: "LLM / Agents",
+    tags: ["LlamaIndex", "Qdrant", "BGE-M3", "Ollama", "RAGAS", "Docker Compose"],
+    year: "2025",
+    status: "Active",
+    featured: true,
+    github: "https://github.com/KennyUMN/finrag-id",
+    // Restated from the repo README (architecture, design decisions, evaluation).
+    approach: [
+      { title: "Ingest", body: "pdfplumber pages with metadata, split into sentence chunks." },
+      { title: "Retrieve", body: "Sastrawi BM25 and BGE-M3 dense search over Qdrant, fused by reciprocal rank fusion." },
+      { title: "Answer", body: "Llama 3.1 8B on Ollama, OpenRouter when Ollama is down, sources tagged [S1] to [Sn]." },
+      { title: "Evaluate", body: "RAGAS faithfulness, answer relevancy and context precision, plus latency p50 and p95." },
+    ],
+  },
+  {
     title: "Bandar Tracker",
     blurb: "Smart-money flow tracker for the Indonesia Stock Exchange.",
     description:
       "Parses KSEI ownership data and broker summaries to surface accumulation and distribution by large players (bandarmologi). FastAPI + async SQLAlchemy backend, single-file charting frontend on Lightweight Charts.",
-    category: "ML Systems",
+    category: "Data Systems",
     tags: ["FastAPI", "Async SQLAlchemy", "Pandas", "Data Pipeline"],
     year: "2025",
     status: "Active",
-    featured: true,
+    privateRepo: true,
     // Restated from the description above; no step claims more than it says.
     approach: [
       { title: "Ingest", body: "KSEI ownership data and broker summaries." },
@@ -116,16 +147,5 @@ export const projects: Project[] = [
     year: "2024",
     status: "Complete",
     // No public repo yet.
-  },
-  {
-    title: "Document Q&A Agent",
-    blurb: "Ask questions across a folder of PDFs, get cited answers.",
-    description:
-      "A local-first retrieval agent over personal documents. Chunking and hybrid search with citations back to the source page, so answers are checkable instead of vibes.",
-    category: "LLM / Agents",
-    tags: ["LangChain", "FastAPI", "Hugging Face", "RAG"],
-    year: "2025",
-    status: "Active",
-    github: "https://github.com/KennyUMN/finrag-id",
   },
 ];

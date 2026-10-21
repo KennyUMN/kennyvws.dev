@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 import { useReducedMotion } from "motion/react";
-import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 
 // The lens rests on an 8px grid, like a strided window over a feature map.
@@ -61,10 +60,8 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
   const lensRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<HTMLDivElement>(null);
   const densityRef = useRef<HTMLSpanElement>(null);
-  const recolorRef = useRef<() => void>(() => {});
   const measuredRef = useRef(onMeasured);
   const reduce = useReducedMotion() ?? false;
-  const { resolvedTheme } = useTheme();
 
   useEffect(() => {
     measuredRef.current = onMeasured;
@@ -101,6 +98,8 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
     let introT0 = 0;
     let visible = true;
     let shown = "";
+    // On touch screens there is no hover to move the lens off the words, so it waits for a tap.
+    let lensOn = !window.matchMedia("(pointer: coarse)").matches;
     let disposed = false;
     const pos = { x: 0, y: 0, tx: 0, ty: 0 };
 
@@ -185,7 +184,6 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
 
     function setup() {
       G = measure();
-      const t0 = performance.now();
       A = rasterize(G);
       M = new Uint16Array(G.W * G.H);
       canvas.width = G.W;
@@ -198,7 +196,7 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
       paint();
       computedTo = 1;
       integral = null;
-      msTotal = performance.now() - t0;
+      msTotal = 0;
       lens!.style.width = `${G.lw}px`;
       lens!.style.height = `${G.lh}px`;
       band!.style.width = `${G.w}px`;
@@ -241,7 +239,6 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
 
     // Summed-area table of the edge mask, so any window's edge count is four lookups.
     function buildIntegral() {
-      const t0 = performance.now();
       const W = G.W;
       const H = G.H;
       const W1 = W + 1;
@@ -254,7 +251,6 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
         }
       }
       integral = S;
-      msTotal += performance.now() - t0;
       measuredRef.current?.(`${((G.W * G.H) / 1e6).toFixed(2)} M pixels in ${msTotal.toFixed(1)} ms`);
     }
 
@@ -313,7 +309,7 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
       pos.x = pos.tx = t.x;
       pos.y = pos.ty = t.y;
       placeLens(t.x, t.y);
-      later(() => (lens!.style.opacity = "1"), reduce ? 0 : 260);
+      if (lensOn) later(() => (lens!.style.opacity = "1"), reduce ? 0 : 260);
       phase = "live";
       later(() => (wrap!.dataset.state = "live"), reduce ? 0 : 1000);
     }
@@ -358,6 +354,10 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
       const cx = e.clientX - pr.left;
       const cy = e.clientY - pr.top;
       if (cx < 0 || cx > G.w || cy < 0 || cy > G.h) return;
+      if (!lensOn) {
+        lensOn = true;
+        lens!.style.opacity = "1";
+      }
       const t = targetFor(cx, cy);
       pos.tx = t.x;
       pos.ty = t.y;
@@ -398,19 +398,37 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
       if (w === lastWidth) return;
       lastWidth = w;
       window.clearTimeout(resizeTimer);
-      resizeTimer = window.setTimeout(() => {
-        if (phase !== "live") return;
-        setup();
-        finishIntro();
-      }, 160);
+      resizeTimer = window.setTimeout(relayout, 160);
     });
     ro.observe(h1);
 
-    recolorRef.current = () => {
+    // A resize mid-intro finishes the intro at the new size instead of being dropped.
+    function relayout() {
+      if (phase === "idle") return;
+      setup();
+      finishIntro();
+    }
+
+    // Moving to a screen with another pixel density changes no CSS size, so watch it directly.
+    let dprQuery: MediaQueryList;
+    const onDpr = () => {
+      dprQuery.removeEventListener("change", onDpr);
+      watchDpr();
+      relayout();
+    };
+    function watchDpr() {
+      dprQuery = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
+      dprQuery.addEventListener("change", onDpr);
+    }
+    watchDpr();
+
+    // next-themes swaps the class on <html> after child effects run, so react to the class itself.
+    const themeObserver = new MutationObserver(() => {
       if (phase === "idle") return;
       paint();
       ctxOut.putImageData(img, 0, 0);
-    };
+    });
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
 
     function start() {
       if (disposed) return;
@@ -444,6 +462,8 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
       window.clearTimeout(resizeTimer);
       io.disconnect();
       ro.disconnect();
+      themeObserver.disconnect();
+      dprQuery.removeEventListener("change", onDpr);
       wrap.removeEventListener("pointermove", onMove);
       wrap.removeEventListener("pointerdown", aimAt);
       document.removeEventListener("visibilitychange", onVisibility);
@@ -455,10 +475,6 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
       delete wrap.dataset.state;
     };
   }, [reduce]);
-
-  useEffect(() => {
-    recolorRef.current();
-  }, [resolvedTheme]);
 
   return (
     <div ref={wrapRef} className="relative" data-testid="sobel-headline">
@@ -486,10 +502,10 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
           {TICKS.map((tick) => (
             <span key={tick} className={cn("absolute size-3 border-ink", tick)} />
           ))}
-          <span className="absolute -top-[7px] left-[18px] bg-surface px-1.5 py-[3px] font-mono text-[10px] leading-none text-ink-2">
+          <span className="absolute left-4 top-1.5 bg-surface px-1 py-[2px] font-mono text-[10px] leading-none text-ink-2">
             Sobel 3×3
           </span>
-          <span className="absolute -bottom-[7px] right-[18px] bg-surface px-1.5 py-[3px] font-mono text-[10px] leading-none tabular-nums text-ink">
+          <span className="absolute bottom-1.5 right-4 bg-surface px-1 py-[2px] font-mono text-[10px] leading-none tabular-nums text-ink">
             <span ref={densityRef}>0.0</span>% edge px
           </span>
         </div>

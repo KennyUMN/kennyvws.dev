@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 import { useReducedMotion, useScroll } from "motion/react";
-import { useTheme } from "next-themes";
 
 const T = 1000;
 const S = 0.008;
@@ -12,6 +11,8 @@ const SHIMMER_TAU_S = 0.07;
 const JITTER = 0.15;
 const DOT_K = 0.86;
 const TAU = Math.PI * 2;
+// The shimmer stops this long after the last scroll or pointer input; the frame stays as drawn.
+const SETTLE_MS = 1500;
 
 // Nichol and Dhariwal cosine schedule: abar(t) = f(t) / f(0), f(t) = cos^2(((t/T + s) / (1 + s)) * pi/2).
 const f = (t: number) => Math.cos((((t / T + S) / (1 + S)) * Math.PI) / 2) ** 2;
@@ -33,15 +34,13 @@ const gauss = () => {
  * Sign-off wordmark: the name as a 45-degree halftone, sampled out of noise by running the
  * variance-preserving forward process backwards. Scrolling to the end of the page is the sampler:
  * the timestep falls to zero as the plate reaches the bottom of the viewport. The pointer adds noise
- * back locally, and dots print in the accent only while their value is still mostly noise.
+ * back locally.
  */
 export function Signoff({ word }: { word: string }) {
   const plateRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const readoutRef = useRef<HTMLSpanElement>(null);
-  const repaintRef = useRef<() => void>(() => {});
   const reduce = useReducedMotion() ?? false;
-  const { resolvedTheme } = useTheme();
   const { scrollYProgress } = useScroll({ target: plateRef, offset: ["start end", "end end"] });
 
   useEffect(() => {
@@ -70,15 +69,17 @@ export function Signoff({ word }: { word: string }) {
     let raf = 0;
     let last = 0;
     let shownT = -1;
-    let palette: string[] = [];
+    let ink = "";
     let pointer: { x: number; y: number; px: number; py: number } | null = null;
     let prev: { x: number; y: number } | null = null;
     let ready = false;
+    let healing = false;
+    let lastInput = 0;
     let disposed = false;
 
     function readPalette() {
       const css = getComputedStyle(document.documentElement);
-      palette = [css.getPropertyValue("--ink").trim(), css.getPropertyValue("--accent").trim()];
+      ink = css.getPropertyValue("--ink").trim();
     }
 
     function rasterize() {
@@ -181,16 +182,19 @@ export function Signoff({ word }: { word: string }) {
       const heal = dt * HEAL_PER_S;
       const rho = Math.exp(-dt / SHIMMER_TAU_S);
       const kick = Math.sqrt(1 - rho * rho);
-      const paths = palette.map(() => new Path2D());
+      const path = new Path2D();
       let tMax = 0;
+      healing = false;
       for (let i = 0; i < n; i++) {
-        if (TL[i] > 0) TL[i] = Math.max(0, TL[i] - heal);
+        if (TL[i] > 0) {
+          TL[i] = Math.max(0, TL[i] - heal);
+          healing ||= TL[i] > 0;
+        }
         const t = Math.round(Math.max(TL[i], scrollT));
         if (t > tMax) tMax = t;
         let x = X[i];
         let y = Y[i];
         let v = X0[i];
-        let b = 0;
         if (t > 0) {
           if (dt > 0) {
             E[i] = rho * E[i] + kick * gauss();
@@ -204,21 +208,18 @@ export function Signoff({ word }: { word: string }) {
           v = signal + noise;
           x += q * EX[i] * pitch * JITTER;
           y += q * EY[i] * pitch * JITTER;
-          b = Math.abs(noise) > Math.abs(signal) ? 1 : 0;
         }
         const cov = (v + 1) / 2;
         if (cov <= 0) continue;
         const r = pitch * Math.sqrt(Math.min(1, cov) / Math.PI) * DOT_K;
         if (r < 0.4) continue;
-        paths[b].moveTo(x + r, y);
-        paths[b].arc(x, y, r, 0, TAU);
+        path.moveTo(x + r, y);
+        path.arc(x, y, r, 0, TAU);
       }
       ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx!.clearRect(0, 0, W, H);
-      paths.forEach((p, b) => {
-        ctx!.fillStyle = palette[b];
-        ctx!.fill(p);
-      });
+      ctx!.fillStyle = ink;
+      ctx!.fill(path);
       if (tMax !== shownT) {
         shownT = tMax;
         readout!.textContent = `t = ${tMax}`;
@@ -254,8 +255,13 @@ export function Signoff({ word }: { word: string }) {
       last = now;
       inject();
       const tMax = draw(dt);
-      if (tMax > 0) schedule();
+      if (tMax > 0 && (healing || now - lastInput < SETTLE_MS)) schedule();
       else last = 0;
+    }
+
+    function wake() {
+      lastInput = performance.now();
+      schedule();
     }
 
     function schedule() {
@@ -271,14 +277,14 @@ export function Signoff({ word }: { word: string }) {
       const p = local(e);
       pointer = pointer ? { ...pointer, ...p } : { ...p, px: prev ? prev.x : p.x, py: prev ? prev.y : p.y };
       prev = p;
-      schedule();
+      wake();
     };
     const onLeave = () => (prev = null);
     const onDown = (e: PointerEvent) => {
       if (reduce || e.pointerType === "mouse") return;
       const p = local(e);
       pointer = { ...p, px: p.x, py: p.y };
-      schedule();
+      wake();
     };
     canvas.addEventListener("pointermove", onMove);
     canvas.addEventListener("pointerleave", onLeave);
@@ -290,14 +296,14 @@ export function Signoff({ word }: { word: string }) {
       const next = Math.round(T * (1 - p) * (1 - p));
       if (next !== scrollT) {
         scrollT = next;
-        schedule();
+        wake();
       }
     };
     const unsubscribe = scrollYProgress.on("change", onProgress);
 
     const io = new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting;
-      schedule();
+      wake();
     });
     io.observe(plate);
     const onVisibility = () => {
@@ -309,19 +315,36 @@ export function Signoff({ word }: { word: string }) {
     let resizeTimer = 0;
     const ro = new ResizeObserver(() => {
       window.clearTimeout(resizeTimer);
-      resizeTimer = window.setTimeout(() => {
-        if (!ready) return;
-        build();
-        if (!raf) draw(0);
-      }, 120);
+      resizeTimer = window.setTimeout(rebuild, 120);
     });
     ro.observe(plate);
 
-    repaintRef.current = () => {
+    function rebuild() {
+      if (!ready) return;
+      build();
+      if (!raf) draw(0);
+    }
+
+    // Moving to a screen with another pixel density changes no CSS size, so watch it directly.
+    let dprQuery: MediaQueryList;
+    const onDpr = () => {
+      dprQuery.removeEventListener("change", onDpr);
+      watchDpr();
+      rebuild();
+    };
+    function watchDpr() {
+      dprQuery = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
+      dprQuery.addEventListener("change", onDpr);
+    }
+    watchDpr();
+
+    // next-themes swaps the class on <html> after child effects run, so react to the class itself.
+    const themeObserver = new MutationObserver(() => {
       if (!ready) return;
       readPalette();
       if (!raf) draw(0);
-    };
+    });
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
 
     document.fonts.ready.then(() => {
       if (disposed) return;
@@ -331,7 +354,7 @@ export function Signoff({ word }: { word: string }) {
       onProgress(scrollYProgress.get());
       draw(0);
       plate.dataset.state = "ready";
-      schedule();
+      wake();
     });
 
     return () => {
@@ -341,6 +364,8 @@ export function Signoff({ word }: { word: string }) {
       unsubscribe();
       io.disconnect();
       ro.disconnect();
+      themeObserver.disconnect();
+      dprQuery.removeEventListener("change", onDpr);
       document.removeEventListener("visibilitychange", onVisibility);
       canvas.removeEventListener("pointermove", onMove);
       canvas.removeEventListener("pointerleave", onLeave);
@@ -348,18 +373,14 @@ export function Signoff({ word }: { word: string }) {
     };
   }, [reduce, scrollYProgress, word]);
 
-  useEffect(() => {
-    repaintRef.current();
-  }, [resolvedTheme]);
-
   return (
     <figure aria-hidden className="select-none">
       <div ref={plateRef} data-testid="signoff" className="relative aspect-[5.2/1] w-full">
         <canvas ref={canvasRef} className="absolute inset-0 size-full touch-pan-y" />
       </div>
       <figcaption className="mt-3 flex justify-between font-mono text-[11px] text-ink-3">
-        <span>Reverse diffusion, cosine schedule</span>
-        <span ref={readoutRef} className="tabular-nums">
+        <span>Forward process played backwards, cosine schedule</span>
+        <span ref={readoutRef} className="whitespace-nowrap tabular-nums">
           t = {T}
         </span>
       </figcaption>

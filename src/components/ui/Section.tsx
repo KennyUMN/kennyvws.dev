@@ -21,20 +21,24 @@ export function Section({ id, title, children, className }: SectionProps) {
       <div className="mx-auto w-full max-w-[1440px] px-5 sm:px-8 lg:px-12">
         <h2
           id={`${id}-heading`}
-          className="font-wide mb-12 text-[clamp(2.75rem,1.2rem+5.6vw,7rem)] font-extrabold leading-[0.92] tracking-[-0.04em] sm:mb-16"
+          className="font-wide mb-12 text-[clamp(2.5rem,1.4rem+3.4vw,4.5rem)] font-extrabold leading-[0.95] tracking-[-0.04em] sm:mb-16"
         >
-          <span className="block overflow-hidden pb-[0.06em]">
+          {/* The clip box is what gets observed: the offset child sits fully outside it until shown. */}
+          <m.span
+            className="block overflow-hidden pb-[0.06em]"
+            initial="hidden"
+            whileInView="shown"
+            viewport={{ once: true, margin: "-80px 0px" }}
+          >
             <m.span
               data-reveal
               className="block"
-              initial={{ y: "105%" }}
-              whileInView={{ y: 0 }}
-              viewport={{ once: true, margin: "-80px 0px" }}
+              variants={{ hidden: { y: "105%" }, shown: { y: 0 } }}
               transition={{ duration: 0.9, ease: EASE_OUT }}
             >
               {title}
             </m.span>
-          </span>
+          </m.span>
         </h2>
         {children}
       </div>

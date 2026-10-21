@@ -3,6 +3,7 @@
 import { m } from "motion/react";
 import type { Project } from "@/data/projects";
 import { Reveal } from "@/components/ui/Reveal";
+import { TextLink } from "@/components/ui/TextLink";
 import { EASE_OUT } from "@/lib/motion";
 import { ProjectMeta } from "./ProjectMeta";
 
@@ -14,15 +15,21 @@ export function PipelineFeature({ project }: { project: Project }) {
       <div className="grid gap-y-8 lg:grid-cols-12 lg:gap-x-12">
         <Reveal variant="heading" className="lg:col-span-5">
           <ProjectMeta project={project} />
-          <h3 className="mt-5 text-[clamp(2.25rem,1.4rem+3vw,4.25rem)] font-semibold leading-[0.98] tracking-[-0.03em]">
+          <h3 className="mt-5 text-[clamp(1.8rem,1.2rem+3.2vw,4.25rem)] font-semibold leading-[0.98] tracking-[-0.03em]">
             {project.title}
           </h3>
           <p className="mt-5 max-w-[30ch] text-xl leading-snug text-ink-2 sm:text-2xl">{project.blurb}</p>
         </Reveal>
         <Reveal delay={0.1} className="flex flex-col justify-end gap-4 lg:col-span-6 lg:col-start-7">
           <p className="max-w-[56ch] leading-relaxed text-ink-2">{project.description}</p>
-          {!project.github && (
-            <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-ink-3">Private repository</p>
+          {project.github ? (
+            <TextLink href={project.github} external resting className="self-start font-medium">
+              Code and evaluation
+            </TextLink>
+          ) : (
+            <p className="font-mono text-[11px] text-ink-3">
+              {project.privateRepo ? "Private repository" : "No public repo yet"}
+            </p>
           )}
         </Reveal>
       </div>

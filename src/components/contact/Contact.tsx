@@ -29,19 +29,23 @@ export function Contact() {
           className="font-wide text-[clamp(2.4rem,0.9rem+5.4vw,7.25rem)] font-extrabold leading-[0.95] tracking-[-0.045em]"
         >
           {lines.map((line, i) => (
-            <span key={line} className="block overflow-hidden pb-[0.06em]">
+            <m.span
+              key={line}
+              className="block overflow-hidden pb-[0.06em]"
+              initial="hidden"
+              whileInView="shown"
+              viewport={{ once: true, margin: "-60px 0px" }}
+            >
               {i > 0 && " "}
               <m.span
                 data-reveal
                 className="block"
-                initial={{ y: "105%" }}
-                whileInView={{ y: 0 }}
-                viewport={{ once: true, margin: "-60px 0px" }}
+                variants={{ hidden: { y: "105%" }, shown: { y: 0 } }}
                 transition={{ duration: 0.9, delay: i * 0.12, ease: EASE_OUT }}
               >
                 {line}
               </m.span>
-            </span>
+            </m.span>
           ))}
         </h2>
 

@@ -6,9 +6,6 @@ import type { EpochMetrics } from "@/data/ppeTraining";
 
 const VB_W = 1000;
 const VB_H = 400;
-const Y_MIN = 0.3;
-const Y_MAX = 0.7;
-const Y_TICKS = [0.3, 0.4, 0.5, 0.6, 0.7];
 
 interface TrainingCurveProps {
   data: EpochMetrics[];
@@ -28,8 +25,14 @@ export function TrainingCurve({ data, source }: TrainingCurveProps) {
   const [hover, setHover] = useState<number | null>(null);
 
   const last = data.length - 1;
+  // Axis range and ticks come from the log itself, so a re-imported run is drawn to scale.
+  const values = data.map((d) => d.map50);
+  const yMin = Math.floor(Math.min(...values) * 10) / 10;
+  const yMax = Math.ceil(Math.max(...values) * 10) / 10;
+  const yTicks = Array.from({ length: Math.round((yMax - yMin) * 10) + 1 }, (_, k) => Number((yMin + k / 10).toFixed(1)));
+  const xTicks = data.flatMap((d, i) => (i === 0 || i === last || d.epoch % 10 === 0 ? [{ i, epoch: d.epoch }] : []));
   const xPct = (i: number) => (i / last) * 100;
-  const yPct = (v: number) => (1 - (v - Y_MIN) / (Y_MAX - Y_MIN)) * 100;
+  const yPct = (v: number) => (1 - (v - yMin) / (yMax - yMin)) * 100;
   const peakIdx = data.reduce((best, d, i) => (d.map50 > data[best].map50 ? i : best), 0);
 
   const line = data
@@ -64,7 +67,7 @@ export function TrainingCurve({ data, source }: TrainingCurveProps) {
 
   return (
     <figure className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 whitespace-nowrap font-mono text-[11px] uppercase tracking-[0.08em] text-ink-2">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 whitespace-nowrap font-mono text-[12px] text-ink-2">
         <span>mAP@50 by epoch</span>
         <span ref={readoutRef} className="tabular-nums text-ink">
           {readout(data[0])}
@@ -78,9 +81,13 @@ export function TrainingCurve({ data, source }: TrainingCurveProps) {
         onPointerLeave={() => setHover(null)}
         aria-hidden
       >
-        {Y_TICKS.map((t) => (
+        {yTicks.map((t) => (
           <div key={t} className="absolute inset-x-0 border-t border-rule" style={{ top: `${yPct(t)}%` }}>
-            <span className="absolute -top-2.5 left-0 -translate-x-[calc(100%+10px)] font-mono text-[10px] tabular-nums text-ink-3 max-sm:hidden">
+            <span
+              className={`absolute -top-2.5 left-0 font-mono text-[10px] tabular-nums text-ink-3 sm:-translate-x-[calc(100%+10px)] ${
+                t === yMin || t === yMax ? "max-sm:-top-4" : "max-sm:hidden"
+              }`}
+            >
               {t.toFixed(1)}
             </span>
           </div>
@@ -149,9 +156,15 @@ export function TrainingCurve({ data, source }: TrainingCurveProps) {
         )}
       </div>
 
-      <div className="flex justify-between font-mono text-[10px] tabular-nums text-ink-3">
-        {[1, 10, 20, 30, 40, 50].map((e) => (
-          <span key={e}>{e === 1 ? "epoch 1" : e}</span>
+      <div aria-hidden className="relative h-3 font-mono text-[10px] leading-none tabular-nums text-ink-3">
+        {xTicks.map(({ i, epoch }) => (
+          <span
+            key={epoch}
+            className={`absolute top-0 whitespace-nowrap ${i === 0 ? "" : i === last ? "-translate-x-full" : "-translate-x-1/2"}`}
+            style={{ left: `${xPct(i)}%` }}
+          >
+            {i === 0 ? `epoch ${epoch}` : epoch}
+          </span>
         ))}
       </div>
 
