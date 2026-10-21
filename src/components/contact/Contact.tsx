@@ -26,7 +26,7 @@ export function Contact() {
         <div aria-hidden className="mb-[clamp(3rem,2rem+4vw,7rem)] border-t border-rule" />
         <h2
           id="contact-heading"
-          className="font-wide text-[clamp(2.4rem,0.9rem+5.4vw,7.25rem)] font-extrabold leading-[0.95] tracking-[-0.045em]"
+          className="font-wide text-[clamp(2.4rem,0.9rem+5.4vw,7.25rem)] font-extrabold leading-[0.95] tracking-[-0.035em]"
         >
           {lines.map((line, i) => (
             <m.span
@@ -50,9 +50,9 @@ export function Contact() {
         </h2>
 
         <Reveal delay={0.3} className="mt-14 grid gap-y-8 sm:mt-20 lg:grid-cols-12 lg:gap-x-12">
-          <p className="max-w-[34ch] text-xl leading-snug text-ink-2 sm:text-2xl lg:col-span-5">{contact.framing}</p>
+          <p className="max-w-[34ch] text-xl leading-snug text-ink-2 sm:text-2xl lg:col-span-5">{contact.invite}</p>
           <div className="flex flex-col gap-6 lg:col-span-6 lg:col-start-7 lg:items-end">
-            <ButtonLink href={`mailto:${site.email}`} className="min-h-14 px-6 text-lg">
+            <ButtonLink href={`mailto:${site.email}`} className="min-h-14 self-start px-6 text-lg lg:self-end">
               {site.email}
               <span aria-hidden className="transition-transform duration-200 group-hover:translate-x-1">
                 →

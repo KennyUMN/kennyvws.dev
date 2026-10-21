@@ -12,7 +12,7 @@ test("the hero lens runs a real edge filter over the headline and follows the po
   await page.goto("/");
   const headline = page.getByTestId("sobel-headline");
   await expect(headline).toHaveAttribute("data-state", "live", { timeout: 15_000 });
-  await expect(page.getByText(/M pixels in [\d.]+ ms/)).toBeVisible();
+  await expect(page.getByText(/megapixels in [\d.]+ ms/)).toBeVisible();
 
   const readout = headline.getByText(/% edge px/);
   const atRest = Number((await readout.innerText()).replace(/[^\d.]/g, ""));
@@ -120,10 +120,13 @@ for (const width of [320, 375, 768, 1024, 1440, 1920]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/");
     await expect(page.getByTestId("sobel-headline")).toHaveAttribute("data-state", "live", { timeout: 15_000 });
-    const overflow = await page.evaluate(
-      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
-    );
-    expect(overflow).toBe(0);
+    const overflow = () =>
+      page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(await overflow()).toBe(0);
+    // Scroll-driven pieces (the training curve, the sign-off) have moved by the bottom of the page.
+    await page.evaluate(() => window.scrollTo({ top: document.body.scrollHeight, behavior: "instant" }));
+    await page.waitForTimeout(300);
+    expect(await overflow()).toBe(0);
   });
 }
 

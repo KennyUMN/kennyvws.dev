@@ -8,8 +8,6 @@ import { TrainingCurve } from "./TrainingCurve";
 
 export function CaseStudy({ project }: { project: Project }) {
   const { ablation, approach = [] } = project;
-  // mAP@50 already sits on the curve's end marker, so the strip shows the other three.
-  const metrics = (project.metrics ?? []).filter((m) => m.label !== "mAP@50");
   const semi = ablation?.rows.find((r) => r.semiSupervised);
   const baseline = ablation?.rows.find((r) => !r.semiSupervised && r.labeledShare === semi?.labeledShare);
   const gain = semi && baseline ? (semi.value - baseline.value).toFixed(3) : null;
@@ -41,20 +39,16 @@ export function CaseStudy({ project }: { project: Project }) {
         </Reveal>
       </div>
 
-      <Reveal variant="artifact" className="mt-14 sm:mt-20 sm:pl-10">
-        <TrainingCurve data={ppeTraining} source={project.metricsSource ?? ""} />
+      <Reveal variant="artifact" className="mt-14 sm:mt-20">
+        <TrainingCurve
+          data={ppeTraining}
+          source={project.metricsSource ?? ""}
+          reference={
+            baseline && { label: `${baseline.label} only, same ${baseline.labeledShare} of labels: ${baseline.value.toFixed(3)}`, value: baseline.value }
+          }
+        />
       </Reveal>
 
-      {metrics.length > 0 && (
-        <dl className="mt-10 grid grid-cols-3 gap-x-6 gap-y-6 border-y border-rule py-6 sm:pl-10">
-          {metrics.map((m) => (
-            <div key={m.label}>
-              <dt className="font-mono text-[12px] text-ink-2">{m.label}</dt>
-              <dd className="mt-1 text-3xl font-semibold tracking-tight">{m.value}</dd>
-            </div>
-          ))}
-        </dl>
-      )}
 
       <div className="mt-16 grid gap-y-14 sm:mt-20 lg:grid-cols-12 lg:gap-x-12">
         {ablation && gain && (

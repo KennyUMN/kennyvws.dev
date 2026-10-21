@@ -19,7 +19,7 @@ export function AblationBars({ ablation }: { ablation: NonNullable<Project["abla
             <span className="flex items-center gap-3">
               <m.span
                 data-reveal
-                className={`block h-5 origin-left rounded-r-[4px] ${row.semiSupervised ? "bg-accent" : "bg-ink-3/45"}`}
+                className={`block h-5 origin-left ${row.semiSupervised ? "bg-accent" : "bg-ink-3/45"}`}
                 style={{ width: `${(row.value / SCALE_MAX) * 100}%` }}
                 initial={{ scaleX: 0 }}
                 whileInView={{ scaleX: 1 }}

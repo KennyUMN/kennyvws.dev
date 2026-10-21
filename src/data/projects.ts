@@ -46,16 +46,17 @@ export interface Project {
 export const projects: Project[] = [
   {
     title: "Semi-Supervised PPE Detection",
-    blurb: "Safety-gear detection with YOLOv9, hand-labeling only a fifth of the data.",
+    blurb: "Finds missing safety gear on construction sites, trained with hand labels on only 20% of the images.",
     description:
-      "Finds hardhats, vests and missing gear in construction-site footage, then marks each worker compliant or in violation. Hand labels cover only 20% of the images and pseudo-labels cover the rest. The training log and the manuscript are public.",
+      "Detects helmets and safety vests in construction-site footage, then marks each worker compliant or in violation. Trained on the public SH17 dataset. The 50-epoch training log and the manuscript are public.",
     category: "Computer Vision",
     tags: ["YOLOv9", "PyTorch", "Semi-Supervised", "OpenCV"],
     year: "2025",
-    status: "Research · manuscript available",
+    status: "Team course project · manuscript public",
     featured: true,
     github: "https://github.com/KennyUMN/ppe-compliance-ssl-yolov9",
     paper: "https://drive.google.com/file/d/1GjKGlQ2XhC3NixaNyOZycBKS09GeofFR/view",
+    // The repo README opens with "Course project (Machine Learning final project, Kelompok 4)".
     // Read from results/training-results.csv (epoch 50) in the public repo.
     // The manuscript reports a different run on a 60% labeled split
     // (mAP@50 0.8368); these are the 20%-labeled repo numbers. Verify before editing.
@@ -65,7 +66,7 @@ export const projects: Project[] = [
       { label: "Recall", value: "0.573" },
       { label: "mAP@50-95", value: "0.409" },
     ],
-    metricsSource: "20% labeled split · repo training log, epoch 50",
+    metricsSource: "Repo training log, 20% labeled split",
     // Restated from the repo README's Approach section.
     approach: [
       { title: "Baseline", body: "Train YOLOv9-c on the 20% labeled split." },
@@ -78,9 +79,9 @@ export const projects: Project[] = [
     ablation: {
       metric: "mAP@50",
       source: "Ablation study · results/grafik_ablation_study.png",
-      checkpoint: "The semi-supervised 0.621 matches the best epoch (40) of the training log above. The final epoch reads 0.614.",
+      checkpoint: "0.621 is epoch 40, the best epoch of the log above. The run ends at 0.614 on epoch 50.",
       claim: "Pseudo-labeling lifts YOLOv9 from 0.493 to 0.621 mAP@50 on the same 20% of labels.",
-      gainCaption: "mAP@50 gained by pseudo-labeling at the best epoch, with the labeling budget held at 20%.",
+      gainCaption: "mAP@50 gained by pseudo-labeling at the best epoch, with the same hand labels.",
       rows: [
         { label: "Supervised", labeledShare: "10%", value: 0.371, semiSupervised: false },
         { label: "Supervised", labeledShare: "20%", value: 0.493, semiSupervised: false },
@@ -92,7 +93,7 @@ export const projects: Project[] = [
     title: "FinRAG-ID",
     blurb: "Cited answers from Indonesian financial reports.",
     description:
-      "Ask Indonesian annual reports, prospectuses or financial statements a question and get an answer that cites the pages it came from. Retrieval fuses Sastrawi BM25 with BGE-M3 dense search, Llama 3.1 8B answers locally through Ollama, and OpenRouter takes over when Ollama is down.",
+      "Ask an Indonesian annual report, prospectus or financial statement a question and get an answer that cites its pages. It runs local-first, and one Docker Compose command brings up Qdrant, Ollama, the API and the UI.",
     category: "LLM / Agents",
     tags: ["LlamaIndex", "Qdrant", "BGE-M3", "Ollama", "RAGAS", "Docker Compose"],
     year: "2025",
@@ -141,7 +142,7 @@ export const projects: Project[] = [
     title: "Tiny Transformer From Scratch",
     blurb: "A 12M-parameter decoder-only model, built to learn the internals.",
     description:
-      "A small decoder-only transformer trained on Indonesian Wikipedia, covering tokenizer training, mixed precision, a KV cache and a minimal inference server.",
+      "Trained on Indonesian Wikipedia, with tokenizer training, mixed precision, a KV cache and a minimal inference server.",
     category: "ML Systems",
     tags: ["PyTorch", "Transformers", "Tokenizers"],
     year: "2024",

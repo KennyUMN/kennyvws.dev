@@ -108,7 +108,7 @@ export function Navbar() {
               ))}
             </ul>
             <a href={site.resume} className="inline-flex min-h-11 items-center text-[14px] font-medium text-ink">
-              <span className="link-draw link-rest">Résumé</span>
+              <span className="link-draw">Résumé</span>
             </a>
             <ThemeToggle />
           </div>

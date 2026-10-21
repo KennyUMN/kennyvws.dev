@@ -15,6 +15,7 @@
   --ink-3: #6c6c66;
   --accent: #e84d17;
   --accent-ink: #121211;
+  --wash: 0.16;
   --shadow-lift: 0 1px 2px rgb(18 18 17 / 0.06), 0 12px 32px rgb(18 18 17 / 0.1);
 }
 
@@ -27,6 +28,7 @@
   --ink-3: #8a8a83;
   --accent: #ff6a2f;
   --accent-ink: #121211;
+  --wash: 0.08;
   --shadow-lift: 0 1px 2px rgb(0 0 0 / 0.5), 0 16px 40px rgb(0 0 0 / 0.55);
 }
 

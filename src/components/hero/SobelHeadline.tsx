@@ -29,7 +29,7 @@ interface SobelHeadlineProps {
   id: string;
   text: string;
   className?: string;
-  /** Receives the measured cost of the convolution, e.g. "1.90 M pixels in 71.1 ms". */
+  /** Receives the measured cost of the convolution, e.g. "0.41 megapixels in 9.9 ms". */
   onMeasured?: (stat: string) => void;
 }
 
@@ -114,7 +114,7 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
       Object.assign(plate!.style, { left: `${-m}px`, top: `${-m}px`, width: `${w}px`, height: `${h}px` });
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const lines = Math.max(1, Math.round(r.height / LH));
-      const lw = Math.min(Math.round((fs * 4.4) / STRIDE) * STRIDE, Math.floor((r.width * 0.55) / STRIDE) * STRIDE);
+      const lw = Math.min(Math.round((fs * 4.8) / STRIDE) * STRIDE, Math.floor((r.width * 0.55) / STRIDE) * STRIDE);
       const lh = LH * Math.min(2, lines);
       return { W: Math.round(w * dpr), H: Math.round(h * dpr), dpr, w, h, m, lw, lh, LH, lines, rest: { x: 0, y: 0 } };
     }
@@ -166,10 +166,10 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
       const a = new Uint8Array(g.W * g.H);
       for (let i = 0; i < a.length; i++) a[i] = px[i * 4 + 3];
 
-      // Rest position: the word "vision", window spanning its line and the next.
+      // Rest position: the window opens one stride left of "vision", so the first frame shows the word whole.
       const v = words.find((wd) => wd.t.toLowerCase().startsWith("vision")) ?? words[0];
       const line = Math.floor((v.r.top + ascent - pr.top - g.m) / g.LH);
-      g.rest = { x: v.r.left - pr.left + v.r.width / 2, y: g.m + line * g.LH + g.lh / 2 };
+      g.rest = { x: v.r.left - pr.left - STRIDE + g.lw / 2, y: g.m + line * g.LH + g.lh / 2 };
       return a;
     }
 
@@ -251,7 +251,7 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
         }
       }
       integral = S;
-      measuredRef.current?.(`${((G.W * G.H) / 1e6).toFixed(2)} M pixels in ${msTotal.toFixed(1)} ms`);
+      measuredRef.current?.(`${((G.W * G.H) / 1e6).toFixed(2)} megapixels in ${msTotal.toFixed(1)} ms`);
     }
 
     function density(x: number, y: number) {
@@ -502,10 +502,10 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
           {TICKS.map((tick) => (
             <span key={tick} className={cn("absolute size-3 border-ink", tick)} />
           ))}
-          <span className="absolute left-4 top-1.5 bg-surface px-1 py-[2px] font-mono text-[10px] leading-none text-ink-2">
+          <span className="absolute left-4 top-1.5 bg-surface max-sm:hidden px-1 py-[2px] font-mono text-[10px] leading-none text-ink-2">
             Sobel 3×3
           </span>
-          <span className="absolute bottom-1.5 right-4 bg-surface px-1 py-[2px] font-mono text-[10px] leading-none tabular-nums text-ink">
+          <span className="absolute bottom-1.5 right-4 bg-surface max-sm:hidden px-1 py-[2px] font-mono text-[10px] leading-none tabular-nums text-ink">
             <span ref={densityRef}>0.0</span>% edge px
           </span>
         </div>

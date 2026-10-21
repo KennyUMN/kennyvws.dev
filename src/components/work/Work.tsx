@@ -9,7 +9,7 @@ export function Work() {
   const rest = projects.filter((p) => !p.featured);
 
   return (
-    <Section id="work" title="Selected work">
+    <Section id="work" title="Work">
       <CaseStudy project={lead} />
       <PipelineFeature project={second} />
       <WorkIndex projects={rest} />

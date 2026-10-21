@@ -15,7 +15,9 @@ export function Hero() {
     <section id="top" aria-labelledby="hero-heading" className="flex min-h-[100dvh] flex-col pt-16">
       <div className="mx-auto grid w-full max-w-[1440px] flex-1 grid-rows-[1fr_auto] px-5 sm:px-8 lg:px-12">
         <div className="self-center py-12 sm:py-16">
-          <p className="text-balance font-mono text-[12px] text-ink-2 sm:text-[13px]">{site.role}</p>
+          <p className="font-mono text-[12px] text-ink-2 sm:text-[13px]">
+            {site.title} · {site.location}
+          </p>
           <SobelHeadline
             id="hero-heading"
             text={site.pitch}
@@ -25,9 +27,6 @@ export function Hero() {
           <div className="mt-10 flex flex-wrap items-center gap-3">
             <ButtonLink href="#work" variant="ink">
               See the work
-              <span aria-hidden className="transition-transform duration-300 group-hover:translate-y-0.5">
-                ↓
-              </span>
             </ButtonLink>
             <ButtonLink href={site.resume} variant="outline">
               Résumé
@@ -39,15 +38,21 @@ export function Hero() {
           <div>
             <dt className="mb-1 font-mono text-[11px] text-ink-3">In this headline</dt>
             <dd>
-              A 3×3 Sobel filter, run in your browser over{" "}
-              <span className="font-mono text-[0.9em] tabular-nums text-ink">{stat ?? "its rendered glyphs"}</span>.{" "}
-              <span className="pointer-coarse:hidden">Point at the headline to slide the window.</span>
-              <span className="hidden pointer-coarse:inline">Tap the headline to open the filter window there.</span>
+              {stat ? (
+                <>
+                  Your browser just ran a 3×3 Sobel edge filter over this headline,{" "}
+                  <span className="whitespace-nowrap tabular-nums text-ink">{stat}</span>.
+                </>
+              ) : (
+                "Your browser runs a 3×3 Sobel edge filter over this headline."
+              )}{" "}
+              <span className="pointer-coarse:hidden">Point at the words to move the window.</span>
+              <span className="hidden pointer-coarse:inline">Tap the words to move the window there.</span>
             </dd>
           </div>
           {lead?.ablation && (
             <div>
-              <dt className="mb-1 font-mono text-[11px] text-ink-3">Selected work</dt>
+              <dt className="mb-1 font-mono text-[11px] text-ink-3">Lead project</dt>
               <dd>
                 <span className="text-ink">{lead.title}.</span> {lead.ablation.claim}{" "}
                 <a href="#work" className="font-medium text-ink underline decoration-ink/30 underline-offset-4 transition-colors hover:decoration-ink">

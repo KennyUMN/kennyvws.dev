@@ -24,7 +24,7 @@ export function PipelineFeature({ project }: { project: Project }) {
           <p className="max-w-[56ch] leading-relaxed text-ink-2">{project.description}</p>
           {project.github ? (
             <TextLink href={project.github} external resting className="self-start font-medium">
-              Code and evaluation
+              Code
             </TextLink>
           ) : (
             <p className="font-mono text-[11px] text-ink-3">
@@ -58,7 +58,7 @@ export function PipelineFeature({ project }: { project: Project }) {
                 transition={{ duration: 0.7, delay: 0.25 + i * 0.18, ease: EASE_OUT }}
               >
                 <span aria-hidden className="absolute left-0 top-0 hidden size-[15px] border-2 border-ink bg-surface lg:block" />
-                <p className="font-wide text-2xl font-bold tracking-[-0.02em]">{step.title}</p>
+                <p className="text-xl font-semibold">{step.title}</p>
                 <p className="max-w-[30ch] leading-relaxed text-ink-2">{step.body}</p>
               </m.li>
             ))}

@@ -77,8 +77,8 @@ test("no project claims a journal submission it cannot back", () => {
   }
 });
 
-test("nav covers the four anchored sections", () => {
-  expect(sectionIds).toEqual(["work", "about", "stack", "contact"]);
+test("nav covers the three anchored sections", () => {
+  expect(sectionIds).toEqual(["work", "about", "contact"]);
   for (const item of navItems) {
     expect(item.href).toBe(`#${item.id}`);
   }
@@ -107,5 +107,4 @@ test("the ablation sentences quote the ablation rows", () => {
   for (const quoted of [baseline.value.toFixed(3), semi.value.toFixed(3), semi.labeledShare, ablation.metric]) {
     expect(ablation.claim).toContain(quoted);
   }
-  expect(ablation.gainCaption).toContain(semi.labeledShare);
 });

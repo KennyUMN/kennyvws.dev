@@ -378,8 +378,8 @@ export function Signoff({ word }: { word: string }) {
       <div ref={plateRef} data-testid="signoff" className="relative aspect-[5.2/1] w-full">
         <canvas ref={canvasRef} className="absolute inset-0 size-full touch-pan-y" />
       </div>
-      <figcaption className="mt-3 flex justify-between font-mono text-[11px] text-ink-3">
-        <span>Forward process played backwards, cosine schedule</span>
+      <figcaption className="mt-3 flex items-start justify-between gap-4 font-mono text-[11px] text-ink-3">
+        <span>Cosine-schedule noise, rewound by scroll</span>
         <span ref={readoutRef} className="whitespace-nowrap tabular-nums">
           t = {T}
         </span>
