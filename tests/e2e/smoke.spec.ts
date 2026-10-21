@@ -169,3 +169,23 @@ test.describe("canvases follow the page", () => {
     expect(sizes.plate - sizes.h1).toBeLessThan(80);
   });
 });
+
+test.describe("layout stability", () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test("the hero does not shift while the filter loads", async ({ page }) => {
+    await page.addInitScript(() => {
+      const w = window as unknown as { __cls: number };
+      w.__cls = 0;
+      new PerformanceObserver((list) => {
+        for (const e of list.getEntries() as unknown as { value: number; hadRecentInput: boolean }[]) {
+          if (!e.hadRecentInput) w.__cls += e.value;
+        }
+      }).observe({ type: "layout-shift", buffered: true });
+    });
+    await page.goto("/");
+    await expect(page.getByTestId("sobel-headline")).toHaveAttribute("data-state", "live", { timeout: 15_000 });
+    await page.waitForTimeout(500);
+    expect(await page.evaluate(() => (window as unknown as { __cls: number }).__cls)).toBeLessThan(0.05);
+  });
+});

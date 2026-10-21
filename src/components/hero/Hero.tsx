@@ -37,17 +37,15 @@ export function Hero() {
         <dl className="grid gap-x-12 gap-y-6 border-t border-rule py-6 text-[15px] leading-relaxed text-ink-2 md:grid-cols-3">
           <div>
             <dt className="mb-1 font-mono text-[11px] text-ink-3">In this headline</dt>
-            <dd>
-              {stat ? (
-                <>
-                  Your browser just ran a 3×3 Sobel edge filter over this headline,{" "}
-                  <span className="whitespace-nowrap tabular-nums text-ink">{stat}</span>.
-                </>
-              ) : (
-                "Your browser runs a 3×3 Sobel edge filter over this headline."
-              )}{" "}
-              <span className="pointer-coarse:hidden">Point at the words to move the window.</span>
-              <span className="hidden pointer-coarse:inline">Tap the words to move the window there.</span>
+            {/* Both sentences share one grid cell, so the strip keeps its height when the stat arrives. */}
+            <dd className="grid">
+              <span className={`[grid-area:1/1] ${stat ? "invisible" : ""}`}>
+                Your browser runs a 3×3 Sobel edge filter over this headline. <Hint />
+              </span>
+              <span className={`[grid-area:1/1] ${stat ? "" : "invisible"}`}>
+                Your browser just ran a 3×3 Sobel edge filter over this headline,{" "}
+                <span className="whitespace-nowrap tabular-nums text-ink">{stat ?? "00.00 megapixels in 000.0 ms"}</span>. <Hint />
+              </span>
             </dd>
           </div>
           {lead?.ablation && (
@@ -76,5 +74,14 @@ export function Hero() {
         </dl>
       </div>
     </section>
+  );
+}
+
+function Hint() {
+  return (
+    <>
+      <span className="pointer-coarse:hidden">Point at the words to move the window.</span>
+      <span className="hidden pointer-coarse:inline">Tap the words to move the window there.</span>
+    </>
   );
 }
