@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import type { Project } from "@/data/projects";
 import { Reveal } from "@/components/ui/Reveal";
 import { EASE_OUT } from "@/lib/motion";
@@ -31,7 +31,7 @@ export function PipelineFeature({ project }: { project: Project }) {
         <figure className="mt-14 sm:mt-20">
           <figcaption className="sr-only">How {project.title} moves data, in order</figcaption>
           <ol className="relative grid gap-y-10 sm:grid-cols-2 sm:gap-x-8 lg:grid-cols-4">
-            <motion.span
+            <m.span
               aria-hidden
               data-reveal
               className="absolute left-0 right-0 top-[7px] hidden h-px origin-left bg-ink lg:block"
@@ -41,7 +41,7 @@ export function PipelineFeature({ project }: { project: Project }) {
               transition={{ duration: 1.4, ease: EASE_OUT }}
             />
             {steps.map((step, i) => (
-              <motion.li
+              <m.li
                 key={step.title}
                 data-reveal
                 className="relative flex flex-col gap-3 lg:pt-10"
@@ -53,7 +53,7 @@ export function PipelineFeature({ project }: { project: Project }) {
                 <span aria-hidden className="absolute left-0 top-0 hidden size-[15px] border-2 border-ink bg-surface lg:block" />
                 <p className="font-wide text-2xl font-bold tracking-[-0.02em]">{step.title}</p>
                 <p className="max-w-[30ch] leading-relaxed text-ink-2">{step.body}</p>
-              </motion.li>
+              </m.li>
             ))}
           </ol>
         </figure>

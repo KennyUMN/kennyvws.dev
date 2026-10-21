@@ -1,14 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import {
-  motion,
-  useMotionValue,
-  useReducedMotion,
-  useScroll,
-  useTransform,
-  type MotionValue,
-} from "motion/react";
+import { useReducedMotion, useScroll } from "motion/react";
 import type { EpochMetrics } from "@/data/ppeTraining";
 
 const VB_W = 1000;
@@ -23,9 +16,14 @@ interface TrainingCurveProps {
 }
 
 const fmt = (v: number) => v.toFixed(3);
+const readout = (d: EpochMetrics) => `epoch ${String(d.epoch).padStart(2, "0")} · ${fmt(d.map50)}`;
 
 export function TrainingCurve({ data, source }: TrainingCurveProps) {
-  const ref = useRef<HTMLDivElement>(null);
+  const plotRef = useRef<HTMLDivElement>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const readoutRef = useRef<HTMLSpanElement>(null);
+  const peakRef = useRef<HTMLDivElement>(null);
+  const endRef = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
   const [hover, setHover] = useState<number | null>(null);
 
@@ -40,19 +38,23 @@ export function TrainingCurve({ data, source }: TrainingCurveProps) {
   const area = `${line} L${VB_W},${VB_H} L0,${VB_H} Z`;
 
   // Scroll is the training clock: the plate's travel up the viewport maps to epochs.
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start 85%", "end 45%"] });
-  // Fed after mount so the server render and the first client render agree (both at epoch 1).
-  const progress = useMotionValue(0);
+  // Applied imperatively after mount, so the server render and first client render agree (epoch 1).
+  const { scrollYProgress } = useScroll({ target: plotRef, offset: ["start 85%", "end 45%"] });
   useEffect(() => {
+    const apply = (p: number) => {
+      const i = Math.round(p * last);
+      if (svgRef.current) svgRef.current.style.clipPath = `inset(0 ${(1 - p) * 100}% 0 0)`;
+      if (readoutRef.current) readoutRef.current.textContent = readout(data[i]);
+      if (peakRef.current) peakRef.current.style.opacity = i >= peakIdx ? "1" : "0";
+      if (endRef.current) endRef.current.style.opacity = i >= last ? "1" : "0";
+    };
     if (reduce) {
-      progress.set(1);
+      apply(1);
       return;
     }
-    progress.set(scrollYProgress.get());
-    return scrollYProgress.on("change", (p) => progress.set(p));
-  }, [reduce, scrollYProgress, progress]);
-  const clip = useTransform(progress, (p) => `inset(0 ${(1 - p) * 100}% 0 0)`);
-  const epochAt = (p: number) => Math.round(p * last);
+    apply(scrollYProgress.get());
+    return scrollYProgress.on("change", apply);
+  }, [reduce, scrollYProgress, data, last, peakIdx]);
 
   const onPointer = (e: React.PointerEvent<HTMLDivElement>) => {
     const box = e.currentTarget.getBoundingClientRect();
@@ -64,33 +66,32 @@ export function TrainingCurve({ data, source }: TrainingCurveProps) {
     <figure className="flex flex-col gap-4">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 whitespace-nowrap font-mono text-[11px] uppercase tracking-[0.08em] text-ink-2">
         <span>mAP@50 by epoch</span>
-        <Readout progress={progress} data={data} epochAt={epochAt} />
+        <span ref={readoutRef} className="tabular-nums text-ink">
+          {readout(data[0])}
+        </span>
       </div>
 
       <div
-        ref={ref}
+        ref={plotRef}
         className="relative aspect-[8/5] w-full touch-pan-y sm:aspect-[5/2]"
         onPointerMove={onPointer}
         onPointerLeave={() => setHover(null)}
         aria-hidden
       >
         {Y_TICKS.map((t) => (
-          <div
-            key={t}
-            className="absolute inset-x-0 border-t border-rule"
-            style={{ top: `${yPct(t)}%` }}
-          >
+          <div key={t} className="absolute inset-x-0 border-t border-rule" style={{ top: `${yPct(t)}%` }}>
             <span className="absolute -top-2.5 left-0 -translate-x-[calc(100%+10px)] font-mono text-[10px] tabular-nums text-ink-3 max-sm:hidden">
               {t.toFixed(1)}
             </span>
           </div>
         ))}
 
-        <motion.svg
+        <svg
+          ref={svgRef}
           viewBox={`0 0 ${VB_W} ${VB_H}`}
           preserveAspectRatio="none"
           className="absolute inset-0 size-full overflow-visible"
-          style={{ clipPath: clip }}
+          style={{ clipPath: "inset(0 100% 0 0)" }}
         >
           <defs>
             <linearGradient id="curve-wash" x1="0" y1="0" x2="0" y2="1">
@@ -108,11 +109,10 @@ export function TrainingCurve({ data, source }: TrainingCurveProps) {
             strokeLinecap="round"
             vectorEffect="non-scaling-stroke"
           />
-        </motion.svg>
+        </svg>
 
         <Marker
-          progress={progress}
-          at={peakIdx / last}
+          ref={peakRef}
           x={xPct(peakIdx)}
           y={yPct(data[peakIdx].map50)}
           label={`Peak ${fmt(data[peakIdx].map50)}`}
@@ -120,8 +120,7 @@ export function TrainingCurve({ data, source }: TrainingCurveProps) {
           above
         />
         <Marker
-          progress={progress}
-          at={1}
+          ref={endRef}
           x={100}
           y={yPct(data[last].map50)}
           label={fmt(data[last].map50)}
@@ -131,10 +130,7 @@ export function TrainingCurve({ data, source }: TrainingCurveProps) {
 
         {hover !== null && (
           <>
-            <div
-              className="pointer-events-none absolute inset-y-0 w-px bg-ink/40"
-              style={{ left: `${xPct(hover)}%` }}
-            />
+            <div className="pointer-events-none absolute inset-y-0 w-px bg-ink/40" style={{ left: `${xPct(hover)}%` }} />
             <div
               className="pointer-events-none absolute z-10 w-44 border border-rule bg-surface-raised p-3 font-mono text-[11px] leading-5 shadow-lift"
               style={{
@@ -182,8 +178,7 @@ function Row({ k, v, strong }: { k: string; v: number; strong?: boolean }) {
 }
 
 interface MarkerProps {
-  progress: MotionValue<number>;
-  at: number;
+  ref: React.Ref<HTMLDivElement>;
   x: number;
   y: number;
   label: string;
@@ -192,38 +187,20 @@ interface MarkerProps {
   align?: "start" | "end";
 }
 
-function Marker({ progress, at, x, y, label, sub, above, align = "start" }: MarkerProps) {
-  const opacity = useTransform(progress, (p) => (p >= at - 0.001 ? 1 : 0));
+function Marker({ ref, x, y, label, sub, above, align = "start" }: MarkerProps) {
   return (
-    <motion.div
-      className="pointer-events-none absolute"
-      style={{ left: `${x}%`, top: `${y}%`, opacity }}
-    >
+    <div ref={ref} className="pointer-events-none absolute" style={{ left: `${x}%`, top: `${y}%`, opacity: 0 }}>
       <span className="absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-surface bg-accent" />
       <span
-        className={`absolute whitespace-nowrap font-mono text-[11px] leading-4 ${
-          above ? "bottom-3" : "top-3"
-        } ${align === "end" ? "right-1" : "-translate-x-1/2"}`}
+        className={`absolute whitespace-nowrap font-mono text-[11px] leading-4 ${above ? "bottom-3" : "top-3"} ${
+          align === "end" ? "right-1" : "-translate-x-1/2"
+        }`}
       >
         <span className="block font-semibold text-ink">{label}</span>
         <span className="block text-ink-2">{sub}</span>
       </span>
-    </motion.div>
+    </div>
   );
-}
-
-interface ReadoutProps {
-  progress: MotionValue<number>;
-  data: EpochMetrics[];
-  epochAt: (p: number) => number;
-}
-
-function Readout({ progress, data, epochAt }: ReadoutProps) {
-  const text = useTransform(progress, (p) => {
-    const d = data[epochAt(p)];
-    return `epoch ${String(d.epoch).padStart(2, "0")} · ${fmt(d.map50)}`;
-  });
-  return <motion.span className="tabular-nums text-ink">{text}</motion.span>;
 }
 
 function TrainingTable({ data }: { data: EpochMetrics[] }) {

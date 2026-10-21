@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { EASE_OUT } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
@@ -24,7 +24,7 @@ export function Section({ id, title, children, className }: SectionProps) {
           className="font-wide mb-12 text-[clamp(2.75rem,1.2rem+5.6vw,7rem)] font-extrabold leading-[0.92] tracking-[-0.04em] sm:mb-16"
         >
           <span className="block overflow-hidden pb-[0.06em]">
-            <motion.span
+            <m.span
               data-reveal
               className="block"
               initial={{ y: "105%" }}
@@ -33,7 +33,7 @@ export function Section({ id, title, children, className }: SectionProps) {
               transition={{ duration: 0.9, ease: EASE_OUT }}
             >
               {title}
-            </motion.span>
+            </m.span>
           </span>
         </h2>
         {children}

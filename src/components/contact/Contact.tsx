@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { contact, site } from "@/data/site";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Reveal } from "@/components/ui/Reveal";
@@ -31,7 +31,7 @@ export function Contact() {
           {lines.map((line, i) => (
             <span key={line} className="block overflow-hidden pb-[0.06em]">
               {i > 0 && " "}
-              <motion.span
+              <m.span
                 data-reveal
                 className="block"
                 initial={{ y: "105%" }}
@@ -40,7 +40,7 @@ export function Contact() {
                 transition={{ duration: 0.9, delay: i * 0.12, ease: EASE_OUT }}
               >
                 {line}
-              </motion.span>
+              </m.span>
             </span>
           ))}
         </h2>

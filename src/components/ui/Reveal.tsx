@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { reveal, type RevealRole } from "@/lib/motion";
 
 interface RevealProps {
@@ -17,7 +17,7 @@ export function Reveal({
   className,
 }: RevealProps) {
   return (
-    <motion.div
+    <m.div
       data-reveal
       className={className}
       variants={reveal(variant, delay)}
@@ -26,6 +26,6 @@ export function Reveal({
       viewport={{ once: true, margin: "-64px 0px" }}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }

@@ -59,7 +59,7 @@ export function CaseStudy({ project }: { project: Project }) {
               +{gain}
             </p>
             <p className="mt-3 max-w-[36ch] text-lg leading-snug text-ink-2">
-              {ablation.metric} gained by pseudo-labeling, with the labeling budget held at 20%.
+              {ablation.metric} gained by pseudo-labeling, with the labeling budget held at {ablation.rows[2].labeledShare}.
             </p>
             <div className="mt-10">
               <AblationBars ablation={ablation} />

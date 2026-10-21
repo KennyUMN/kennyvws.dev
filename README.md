@@ -1,9 +1,10 @@
 # kennyvws.dev
 
-Personal portfolio — single page, Next.js App Router, Tailwind CSS v4,
-Motion, next-themes. Design direction: Apple-HIG-inspired "Quiet Precision",
-evolved with a rauno.me-inspired interaction philosophy — single-sentence hero,
-colorless motion-affordance links, cursor-proximate term previews, one accent moment.
+Personal portfolio: single page, Next.js App Router, Tailwind CSS v4,
+Motion, next-themes. The v2 design pairs an editorial Mona Sans layout with two
+computed centerpieces (a live Sobel filter over the hero headline and a halftone
+sign-off sampled out of noise) and a work section drawn from the real PPE
+training log. Design decisions: `docs/redesign-v2/`.
 
 ## Develop
 
@@ -22,6 +23,7 @@ colorless motion-affordance links, cursor-proximate term previews, one accent mo
 
 All copy lives in `src/data/` (site, nav, projects, skills, posts).
 Structured content (projects, skills, posts, links) lives in the data files; section components hardcode only their display headlines.
+The PPE training curve comes from the public repo: `node scripts/import-ppe-log.mjs` regenerates `src/data/ppeTraining.ts`.
 
 ## Deploy
 

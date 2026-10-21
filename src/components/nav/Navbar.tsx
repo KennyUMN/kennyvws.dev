@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "motion/react";
+import { AnimatePresence, m, useMotionValueEvent, useScroll } from "motion/react";
 import { navItems, sectionIds } from "@/data/nav";
 import { site } from "@/data/site";
 import { useActiveSection } from "@/hooks/useActiveSection";
@@ -138,7 +138,7 @@ export function Navbar() {
 
       <AnimatePresence>
         {open && (
-          <motion.div
+          <m.div
             id="mobile-menu"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -148,7 +148,7 @@ export function Navbar() {
           >
             <ul className="flex flex-col px-5 pt-6 sm:px-8">
               {[...navItems, { id: "resume", label: "Résumé", href: site.resume }].map((item, i) => (
-                <motion.li
+                <m.li
                   key={item.id}
                   className="border-b border-rule"
                   initial={{ opacity: 0, y: 16 }}
@@ -162,10 +162,10 @@ export function Navbar() {
                   >
                     {item.label}
                   </a>
-                </motion.li>
+                </m.li>
               ))}
             </ul>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </header>

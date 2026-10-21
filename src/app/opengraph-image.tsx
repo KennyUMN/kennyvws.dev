@@ -15,35 +15,27 @@ export default function OpenGraphImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          padding: 80,
-          backgroundColor: "#0a0a0b",
-          color: "#f5f5f7",
+          padding: 72,
+          backgroundColor: "#0e0e0d",
+          color: "#ededE8",
           fontFamily: "sans-serif",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <div
-            style={{
-              width: 14,
-              height: 14,
-              borderRadius: 9999,
-              backgroundColor: "#409cff",
-            }}
-          />
-          <div style={{ fontSize: 28, color: "#a3a3ad" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ fontSize: 40, fontWeight: 800, letterSpacing: -1 }}>{site.name}</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, fontSize: 24, color: "#aaaaa3" }}>
+            <div style={{ width: 14, height: 14, backgroundColor: "#ff6a2f" }} />
             {site.url.replace(/^https?:\/\//, "")}
           </div>
         </div>
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <div style={{ fontSize: 96, fontWeight: 700, letterSpacing: -4 }}>
-            Kenny
-          </div>
-          <div style={{ marginTop: 12, fontSize: 36, color: "#a3a3ad" }}>
-            {site.role}
+        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+          <div style={{ fontSize: 26, color: "#aaaaa3" }}>{site.role}</div>
+          <div style={{ fontSize: 64, fontWeight: 600, lineHeight: 1.05, letterSpacing: -2, maxWidth: 1000 }}>
+            {site.pitch}
           </div>
         </div>
       </div>
     ),
-    size
+    size,
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import type { Project } from "@/data/projects";
 import { EASE_OUT } from "@/lib/motion";
 
@@ -20,7 +20,7 @@ export function AblationBars({ ablation }: { ablation: NonNullable<Project["abla
               <span className="block font-mono text-[11px] text-ink-3">{row.labeledShare} labels</span>
             </span>
             <span className="flex items-center gap-3">
-              <motion.span
+              <m.span
                 data-reveal
                 className={`block h-5 origin-left rounded-r-[4px] ${row.semiSupervised ? "bg-accent" : "bg-ink-3/45"}`}
                 style={{ width: `${(row.value / SCALE_MAX) * 100}%` }}
@@ -37,7 +37,7 @@ export function AblationBars({ ablation }: { ablation: NonNullable<Project["abla
         ))}
       </ul>
       <figcaption className="text-sm text-ink-2">
-        Same 20% of hand labels, +{gain} {ablation.metric} from pseudo-labeling the other 80%.
+        Same {best.labeledShare} of hand labels, +{gain} {ablation.metric} once the baseline pseudo-labels the rest.
         <span className="mt-1 block font-mono text-[11px] text-ink-3">{ablation.source}</span>
       </figcaption>
     </figure>
