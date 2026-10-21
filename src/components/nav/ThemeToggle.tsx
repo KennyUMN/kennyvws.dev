@@ -64,7 +64,7 @@ export function ThemeToggle() {
           : "Toggle theme"
       }
       onClick={swapTheme}
-      className="flex size-11 items-center justify-center rounded-full text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink"
+      className="flex size-11 items-center justify-center text-ink-2 transition-colors hover:text-ink"
     >
       {mounted ? (
         isDark ? (

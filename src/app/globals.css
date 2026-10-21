@@ -2,70 +2,103 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* One accent, locked: safety orange, the hi-vis colour the PPE detector looks
+   for. It marks the result worth reading (a chart's highlighted series, the
+   primary CTA, focus, selection) and nothing decorative. */
 :root {
-  --surface: #ededed;
-  --raised: #f4f4f4;
-  --surface-muted: #e2e2e4;
-  --ink: #111111;
-  --ink-muted: #55555c;
-  --edge: #d4d4d8;
-  --accent: #0066cc;
-  --accent-contrast: #ffffff;
-  --shadow-soft: 0 1px 2px rgb(17 17 17 / 0.04), 0 8px 24px rgb(17 17 17 / 0.05);
-  --shadow-lifted: 0 2px 4px rgb(17 17 17 / 0.05), 0 16px 40px rgb(17 17 17 / 0.09);
+  --surface: #efefec;
+  --surface-raised: #f8f8f6;
+  --surface-sunk: #e6e6e2;
+  --rule: #d6d6d0;
+  --ink: #121211;
+  --ink-2: #4b4b46;
+  --ink-3: #6c6c66;
+  --accent: #ff5a1f;
+  --accent-ink: #121211;
+  --shadow-lift: 0 1px 2px rgb(18 18 17 / 0.06), 0 12px 32px rgb(18 18 17 / 0.1);
 }
 
 .dark {
-  --surface: #1a1a1a;
-  --raised: #212121;
-  --surface-muted: #28282a;
-  --ink: #f2f2f2;
-  --ink-muted: #a6a6ad;
-  --edge: #303034;
-  --accent: #409cff;
-  --accent-contrast: #0a0a0b;
-  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.35);
-  --shadow-lifted: 0 2px 4px rgb(0 0 0 / 0.5), 0 16px 40px rgb(0 0 0 / 0.5);
+  --surface: #0e0e0d;
+  --surface-raised: #181817;
+  --surface-sunk: #090908;
+  --rule: #2b2b28;
+  --ink: #ededE8;
+  --ink-2: #aaaaa3;
+  --ink-3: #8a8a83;
+  --accent: #ff6a2f;
+  --accent-ink: #121211;
+  --shadow-lift: 0 1px 2px rgb(0 0 0 / 0.5), 0 16px 40px rgb(0 0 0 / 0.55);
 }
 
 @theme inline {
   --color-surface: var(--surface);
-  --color-raised: var(--raised);
-  --color-surface-muted: var(--surface-muted);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunk: var(--surface-sunk);
+  --color-rule: var(--rule);
   --color-ink: var(--ink);
-  --color-ink-muted: var(--ink-muted);
-  --color-edge: var(--edge);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
   --color-accent: var(--accent);
-  --color-accent-contrast: var(--accent-contrast);
-  --shadow-soft: var(--shadow-soft);
-  --shadow-lifted: var(--shadow-lifted);
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --color-accent-ink: var(--accent-ink);
+  --shadow-lift: var(--shadow-lift);
+  --font-sans: var(--font-mona), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-martian), ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 html {
   scroll-behavior: smooth;
+  background: var(--surface);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-
-  /* Entrance reveals become opacity-only. MotionConfig reducedMotion="user"
-     already stops transform *animation*, but the initial y-offset is inlined
-     into the server-rendered HTML — override it so nothing sits translated.
-     clip-path is not covered by reducedMotion at all, so the heading wipe
-     would otherwise render fully clipped and never open. */
-  [data-reveal] {
-    transform: none !important;
-    clip-path: none !important;
-  }
+/* Wide display cut of Mona Sans. Width is an axis of the same family, so the
+   display voice and the reading voice never fight. */
+.font-wide {
+  font-stretch: 125%;
 }
 
-/* Theme swap. Where View Transitions exist the new theme wipes in as a circle
-   from the toggle; elsewhere the colour tokens crossfade. Both are scoped to
-   the swap itself so nothing else in the page picks up a colour transition. */
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Links signal with motion: an underline that draws in from the left. */
+.link-draw {
+  position: relative;
+}
+
+.link-draw::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: -2px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:where(.link-draw:hover, .link-draw:focus-visible, a:hover > .link-draw, a:focus-visible > .link-draw, summary:hover > .link-draw)::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.link-rest::after {
+  transform: scaleX(1);
+  opacity: 0.35;
+}
+
+:where(a:hover > .link-rest, a:focus-visible > .link-rest)::after {
+  opacity: 1;
+}
+
+/* Theme swap: the new theme wipes in as a circle from the toggle. */
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation: none;
@@ -78,7 +111,7 @@ html {
 
 ::view-transition-new(root) {
   z-index: 1;
-  animation: theme-wipe 480ms cubic-bezier(0.16, 1, 0.3, 1);
+  animation: theme-wipe 520ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes theme-wipe {
@@ -97,12 +130,14 @@ html.theme-fade *::after {
   transition:
     background-color 320ms cubic-bezier(0.16, 1, 0.3, 1),
     border-color 320ms cubic-bezier(0.16, 1, 0.3, 1),
-    color 320ms cubic-bezier(0.16, 1, 0.3, 1),
-    fill 320ms cubic-bezier(0.16, 1, 0.3, 1),
-    stroke 320ms cubic-bezier(0.16, 1, 0.3, 1);
+    color 320ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
   ::view-transition-new(root),
   ::view-transition-old(root) {
     animation: none;
@@ -114,87 +149,15 @@ html.theme-fade *::after {
   html.theme-fade *::after {
     transition: none;
   }
-}
 
-::selection {
-  background: var(--accent);
-  color: var(--accent-contrast);
-}
-
-:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-/* Colorless link language: motion, not color, signals interactivity.
-   Place .link-draw on the text span inside a padded anchor so the
-   underline hugs the label, not the hit area. */
-.link-draw {
-  position: relative;
-}
-
-.link-draw::after {
-  content: "";
-  position: absolute;
-  inset-inline: 0;
-  bottom: -2px;
-  height: 1px;
-  background: currentColor;
-  transform: scaleX(0);
-  transform-origin: right; /* un-hover exits toward the right */
-  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-:where(
-    .link-draw:hover,
-    .link-draw:focus-visible,
-    a:hover > .link-draw,
-    a:focus-visible > .link-draw
-  )::after {
-  transform: scaleX(1);
-  transform-origin: left; /* draws in from the left */
-}
-
-.link-active::after {
-  transform: scaleX(1);
-}
-
-/* At-rest hairline so above-the-fold CTAs read as links before any hover. */
-.link-rest {
-  border-bottom: 1px solid color-mix(in srgb, currentColor 35%, transparent);
-  padding-bottom: 2px;
-}
-
-.link-rest::after {
-  bottom: -1px; /* draw over the resting hairline */
-}
-
-/* Signature term affordance. Dotted underline everywhere — on touch it is
-   the only cue that the term opens something, and tapping it does. */
-.term-trigger {
-  text-decoration: underline;
-  text-decoration-style: dotted;
-  text-decoration-thickness: 1px;
-  text-decoration-color: color-mix(in srgb, var(--ink-muted) 70%, transparent);
-  text-underline-offset: 0.25em;
-}
-
-@media (prefers-reduced-motion: reduce) {
   .link-draw::after {
-    transition: none; /* underline toggles instantly */
+    transition: none;
   }
-}
 
-/* Blueprint ground — the same 28px grid the detection canvas draws, so the
-   page and its plates share one measurement instead of the page being blank
-   paper behind them. The radial layer fades the grid toward the fold so it
-   reads as atmosphere, not wallpaper. Pure background-image: no pseudo
-   element, so it can never sit on top of content. */
-.blueprint {
-  background-color: var(--surface);
-  background-image:
-    radial-gradient(140% 110% at 72% 0%, transparent 25%, var(--surface) 78%),
-    linear-gradient(to right, var(--edge) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--edge) 1px, transparent 1px);
-  background-size: auto, 28px 28px, 28px 28px;
+  /* Entrance reveals render in place: no offset, no clip waiting on a scroll. */
+  [data-reveal] {
+    transform: none !important;
+    opacity: 1 !important;
+    clip-path: none !important;
+  }
 }

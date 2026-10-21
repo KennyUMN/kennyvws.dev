@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion, useScroll } from "motion/react";
+import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "motion/react";
 import { navItems, sectionIds } from "@/data/nav";
 import { site } from "@/data/site";
 import { useActiveSection } from "@/hooks/useActiveSection";
+import { EASE_OUT } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -16,13 +17,9 @@ export function Navbar() {
   const headerRef = useRef<HTMLElement>(null);
 
   const { scrollY } = useScroll();
-  useEffect(() => {
-    // Prime from the current position (anchor deep links load mid-scroll,
-    // where no "change" event ever fires), then follow scroll updates.
-    const update = () => setScrolled(scrollY.get() > 8);
-    update();
-    return scrollY.on("change", update);
-  }, [scrollY]);
+  useMotionValueEvent(scrollY, "change", (y) => setScrolled(y > 8));
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => setScrolled(window.scrollY > 8), []);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -33,30 +30,18 @@ export function Navbar() {
 
   useEffect(() => {
     if (!open) return;
-    // Move focus into the sheet so keyboard users land on the first link.
-    const firstLink =
-      headerRef.current?.querySelector<HTMLElement>("#mobile-menu a");
-    firstLink?.focus();
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-    const getFocusable = () =>
-      Array.from(
-        headerRef.current?.querySelectorAll<HTMLElement>(
-          "a[href], button:not([disabled])"
-        ) ?? []
-      ).filter((el) => el.offsetParent !== null);
+    headerRef.current?.querySelector<HTMLElement>("#mobile-menu a")?.focus();
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setOpen(false);
-        // Return focus to the toggle so keyboard users don't fall to <body>.
         menuButtonRef.current?.focus();
         return;
       }
       if (e.key !== "Tab") return;
-      const focusable = getFocusable();
+      const focusable = Array.from(
+        headerRef.current?.querySelectorAll<HTMLElement>("a[href], button:not([disabled])") ?? [],
+      ).filter((el) => el.offsetParent !== null);
       if (focusable.length === 0) return;
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
@@ -68,79 +53,65 @@ export function Navbar() {
         first.focus();
       }
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open]);
 
-  useEffect(() => {
-    if (!open) return;
-    // Crossing into desktop layout while the sheet is open would leave
-    // scroll locked and the focus trap running behind hidden markup.
+    // Crossing into the desktop layout with the sheet open would strand the scroll lock.
     const mql = window.matchMedia("(min-width: 768px)");
-    const onChange = (e: MediaQueryListEvent | MediaQueryList) => {
-      if (e.matches) setOpen(false);
-    };
-    onChange(mql);
-    mql.addEventListener("change", onChange);
-    return () => mql.removeEventListener("change", onChange);
-  }, [open]);
+    const onWide = (e: MediaQueryListEvent) => e.matches && setOpen(false);
 
-  const glass = scrolled || open;
+    window.addEventListener("keydown", onKey);
+    mql.addEventListener("change", onWide);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      mql.removeEventListener("change", onWide);
+    };
+  }, [open]);
 
   return (
     <header ref={headerRef} className="fixed inset-x-0 top-0 z-50">
       <div
         className={cn(
-          "border-b transition-colors duration-300",
-          glass
-            ? "border-edge/70 bg-surface/75 backdrop-blur-xl"
-            : "border-transparent"
+          "relative z-10 border-b transition-colors duration-300",
+          scrolled && !open ? "border-rule bg-surface/80 backdrop-blur-xl" : "border-transparent",
         )}
       >
         <nav
           aria-label="Main"
-          className="mx-auto flex h-16 max-w-5xl items-center justify-between px-6"
+          className="mx-auto flex h-16 w-full max-w-[1440px] items-center justify-between px-5 sm:px-8 lg:px-12"
         >
           <a
             href="#top"
-            className="inline-flex min-h-11 items-center font-mono text-[13px] font-medium uppercase tracking-[0.12em]"
             onClick={() => setOpen(false)}
+            className="font-wide inline-flex min-h-11 items-center text-[17px] font-extrabold tracking-[-0.02em]"
           >
-            Kenny
+            {site.name}
           </a>
 
-          {/* Desktop */}
-          <div className="hidden items-center gap-1 md:flex">
-            {navItems.map((item, i) => (
-              <a
-                key={item.id}
-                href={item.href}
-                aria-current={active === item.id ? "true" : undefined}
-                className={cn(
-                  "inline-flex min-h-11 items-center px-2 font-mono text-[11px] uppercase tracking-[0.14em] transition-colors",
-                  active === item.id ? "text-ink" : "text-ink-muted hover:text-ink"
-                )}
-              >
-                <span aria-hidden className="mr-1.5 text-ink-muted/60">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <span className={cn("link-draw", active === item.id && "link-active")}>
-                  {item.label}
-                </span>
-              </a>
-            ))}
+          <div className="hidden items-center gap-6 md:flex">
+            <ul className="flex items-center gap-6 text-[14px] font-medium">
+              {navItems.map((item) => (
+                <li key={item.id}>
+                  <a
+                    href={item.href}
+                    aria-current={active === item.id ? "true" : undefined}
+                    className={cn(
+                      "inline-flex min-h-11 items-center transition-colors",
+                      active === item.id ? "text-ink" : "text-ink-2 hover:text-ink",
+                    )}
+                  >
+                    <span className={cn("link-draw", active === item.id && "link-rest")}>{item.label}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
             <a
               href={site.resume}
-              className="ml-1 inline-flex min-h-11 items-center px-2 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-muted transition-colors hover:text-ink"
+              className="inline-flex min-h-11 items-center border border-ink/20 px-3.5 text-[14px] font-medium transition-colors hover:border-ink hover:bg-ink hover:text-surface"
             >
-              <span className="link-draw">Resume</span>
+              Résumé
             </a>
-            <div className="ml-1">
-              <ThemeToggle />
-            </div>
+            <ThemeToggle />
           </div>
 
-          {/* Mobile */}
           <div className="flex items-center gap-1 md:hidden">
             <ThemeToggle />
             <button
@@ -150,59 +121,53 @@ export function Navbar() {
               aria-controls="mobile-menu"
               aria-label={open ? "Close menu" : "Open menu"}
               onClick={() => setOpen((v) => !v)}
-              className="flex size-11 flex-col items-center justify-center gap-[5px] rounded-full text-ink"
+              className="flex size-11 flex-col items-center justify-center gap-[6px] text-ink"
             >
               <span
                 aria-hidden
-                className={cn(
-                  "h-[1.5px] w-4 rounded-full bg-current transition-transform duration-200",
-                  open && "translate-y-[3.25px] rotate-45"
-                )}
+                className={cn("h-[2px] w-5 bg-current transition-transform duration-200", open && "translate-y-[4px] rotate-45")}
               />
               <span
                 aria-hidden
-                className={cn(
-                  "h-[1.5px] w-4 rounded-full bg-current transition-transform duration-200",
-                  open && "-translate-y-[3.25px] -rotate-45"
-                )}
+                className={cn("h-[2px] w-5 bg-current transition-transform duration-200", open && "-translate-y-[4px] -rotate-45")}
               />
             </button>
           </div>
         </nav>
+      </div>
 
-        <AnimatePresence>
-          {open && (
-            <motion.div
-              id="mobile-menu"
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-              className="absolute inset-x-0 top-16 border-b border-edge bg-surface/95 backdrop-blur-xl md:hidden"
-            >
-              <div className="space-y-1 px-6 pb-8 pt-2">
-                {navItems.map((item) => (
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            id="mobile-menu"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-surface pt-16 md:hidden"
+          >
+            <ul className="flex flex-col px-5 pt-6 sm:px-8">
+              {[...navItems, { id: "resume", label: "Résumé", href: site.resume }].map((item, i) => (
+                <motion.li
+                  key={item.id}
+                  className="border-b border-rule"
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.45, delay: 0.04 + i * 0.05, ease: EASE_OUT }}
+                >
                   <a
-                    key={item.id}
                     href={item.href}
                     onClick={() => setOpen(false)}
-                    className="block rounded-xl px-4 py-3 font-mono text-lg font-medium uppercase tracking-[0.08em] transition-colors hover:bg-surface-muted"
+                    className="font-wide flex min-h-16 items-center text-4xl font-extrabold tracking-[-0.03em]"
                   >
                     {item.label}
                   </a>
-                ))}
-                <a
-                  href={site.resume}
-                  onClick={() => setOpen(false)}
-                  className="block rounded-xl px-4 py-3 font-mono text-lg font-medium uppercase tracking-[0.08em] text-ink-muted transition-colors hover:bg-surface-muted"
-                >
-                  Resume
-                </a>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+                </motion.li>
+              ))}
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }

@@ -2,12 +2,7 @@ import type { Variants } from "motion/react";
 
 export const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 export const EASE_OUT_SOFT = [0.22, 0.61, 0.36, 1] as const;
-export const EASE_IN_OUT = [0.65, 0, 0.35, 1] as const;
 
-export const SPRING_SNAP = { stiffness: 420, damping: 32 } as const;
-export const SPRING_SOFT = { stiffness: 210, damping: 30 } as const;
-
-export const DUR_FAST = 0.2;
 export const DUR_BASE = 0.6;
 export const DUR_SLOW = 0.9;
 
@@ -47,8 +42,3 @@ export function reveal(role: RevealRole = "body", delay = 0): Variants {
       };
   }
 }
-
-export const staggerParent = (gap = 0.08): Variants => ({
-  hidden: {},
-  show: { transition: { staggerChildren: gap } },
-});

@@ -2,7 +2,7 @@ export const site = {
   name: "Kenny",
   role: "AI Engineer · Computer Vision & LLM Systems",
   pitch:
-    "I build machine learning systems end to end: computer vision and LLM tooling, from the training loop to the server that keeps it running.",
+    "I build computer vision and LLM systems, from the training loop to the server that keeps it running.",
   url: "https://kennyvws-dev.vercel.app",
   email: "kennyvws1@gmail.com",
   resume: "/resume.pdf",

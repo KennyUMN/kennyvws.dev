@@ -1,11 +1,10 @@
 import { Navbar } from "@/components/nav/Navbar";
-import { Hero } from "@/components/sections/Hero";
-import { About } from "@/components/sections/About";
-import { Skills } from "@/components/sections/Skills";
-import { Projects } from "@/components/sections/Projects";
-import { TrainingTrace } from "@/components/sections/TrainingTrace";
-import { Contact } from "@/components/sections/Contact";
-import { Footer } from "@/components/sections/Footer";
+import { Hero } from "@/components/hero/Hero";
+import { Work } from "@/components/work/Work";
+import { About } from "@/components/about/About";
+import { Stack } from "@/components/stack/Stack";
+import { Contact } from "@/components/contact/Contact";
+import { Footer } from "@/components/contact/Footer";
 
 export default function Home() {
   return (
@@ -13,10 +12,9 @@ export default function Home() {
       <Navbar />
       <main id="main">
         <Hero />
-        <Projects />
-        <TrainingTrace />
+        <Work />
         <About />
-        <Skills />
+        <Stack />
         <Contact />
       </main>
       <Footer />

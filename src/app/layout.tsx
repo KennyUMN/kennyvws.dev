@@ -1,20 +1,22 @@
-import type { Metadata } from "next";
-import { Geist, JetBrains_Mono } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Martian_Mono, Mona_Sans } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { MotionConfig } from "motion/react";
 import { site } from "@/data/site";
 import "./globals.css";
 
-const geist = Geist({
+const mona = Mona_Sans({
   subsets: ["latin"],
-  variable: "--font-geist-sans",
+  axes: ["wdth"],
+  variable: "--font-mona",
   display: "swap",
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const martian = Martian_Mono({
   subsets: ["latin"],
-  variable: "--font-jetbrains-mono",
+  variable: "--font-martian",
   display: "swap",
+  preload: false,
 });
 
 const title = "Kenny · AI Engineer";
@@ -38,17 +40,24 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#efefec" },
+    { media: "(prefers-color-scheme: dark)", color: "#0e0e0d" },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geist.variable} ${jetbrainsMono.variable} bg-surface font-sans text-ink antialiased`}>
+      <body className={`${mona.variable} ${martian.variable} bg-surface font-sans text-ink antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <MotionConfig reducedMotion="user">
             <a
               href="#main"
-              className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-accent focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-accent-contrast"
+              className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:bg-accent focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-accent-ink"
             >
               Skip to content
             </a>
