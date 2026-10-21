@@ -46,9 +46,9 @@ export interface Project {
 export const projects: Project[] = [
   {
     title: "Semi-Supervised PPE Detection",
-    blurb: "YOLOv9 + pseudo-labeling for construction-site safety gear.",
+    blurb: "Safety-gear detection with YOLOv9, hand-labeling only a fifth of the data.",
     description:
-      "Detects hardhats, vests, and missing PPE on construction sites. Uses a semi-supervised pseudo-labeling loop to cut manual annotation, with a confidence-thresholded teacher-student setup. The training log and the manuscript are both public.",
+      "Finds hardhats, vests and missing gear in construction-site footage, then marks each worker compliant or in violation. Hand labels cover only 20% of the images and pseudo-labels cover the rest. The training log and the manuscript are public.",
     category: "Computer Vision",
     tags: ["YOLOv9", "PyTorch", "Semi-Supervised", "OpenCV"],
     year: "2025",
@@ -92,7 +92,7 @@ export const projects: Project[] = [
     title: "FinRAG-ID",
     blurb: "Cited answers from Indonesian financial reports.",
     description:
-      "A local-first RAG pipeline over Indonesian annual reports, prospectuses and financial statements. Hybrid retrieval fuses Sastrawi BM25 with BGE-M3 dense search, Llama 3.1 8B answers through Ollama with an OpenRouter fallback, and every answer cites the pages it used.",
+      "Ask Indonesian annual reports, prospectuses or financial statements a question and get an answer that cites the pages it came from. Retrieval fuses Sastrawi BM25 with BGE-M3 dense search, Llama 3.1 8B answers locally through Ollama, and OpenRouter takes over when Ollama is down.",
     category: "LLM / Agents",
     tags: ["LlamaIndex", "Qdrant", "BGE-M3", "Ollama", "RAGAS", "Docker Compose"],
     year: "2025",
@@ -111,7 +111,7 @@ export const projects: Project[] = [
     title: "Bandar Tracker",
     blurb: "Smart-money flow tracker for the Indonesia Stock Exchange.",
     description:
-      "Parses KSEI ownership data and broker summaries to surface accumulation and distribution by large players (bandarmologi). FastAPI + async SQLAlchemy backend, single-file charting frontend on Lightweight Charts.",
+      "Reads KSEI ownership data and broker summaries to show where large players are accumulating or distributing, the analysis IDX traders call bandarmologi. FastAPI with async SQLAlchemy behind a one-file Lightweight Charts front end.",
     category: "Data Systems",
     tags: ["FastAPI", "Async SQLAlchemy", "Pandas", "Data Pipeline"],
     year: "2025",
@@ -128,9 +128,9 @@ export const projects: Project[] = [
   },
   {
     title: "RAG Evaluation Harness",
-    blurb: "Measure retrieval quality before trusting a RAG answer.",
+    blurb: "Measure retrieval before trusting a RAG answer.",
     description:
-      "A reproducible harness that scores retrieval-augmented pipelines with RAGAS, runs against local models through Ollama, and tracks faithfulness and context-recall across config changes so regressions are caught early.",
+      "A reproducible harness that scores RAG pipelines with RAGAS against local models on Ollama, and tracks faithfulness and context recall across config changes so regressions show up early.",
     category: "LLM / Agents",
     tags: ["LlamaIndex", "RAGAS", "Ollama", "Evaluation"],
     year: "2025",
@@ -139,9 +139,9 @@ export const projects: Project[] = [
   },
   {
     title: "Tiny Transformer From Scratch",
-    blurb: "A 12M-param decoder-only transformer, no framework magic.",
+    blurb: "A 12M-parameter decoder-only model, built to learn the internals.",
     description:
-      "A small decoder-only transformer trained on Indonesian Wikipedia. Built to actually understand the internals: tokenizer training, mixed precision, KV cache, and a minimal inference server.",
+      "A small decoder-only transformer trained on Indonesian Wikipedia, covering tokenizer training, mixed precision, a KV cache and a minimal inference server.",
     category: "ML Systems",
     tags: ["PyTorch", "Transformers", "Tokenizers"],
     year: "2024",
