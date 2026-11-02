@@ -21,6 +21,9 @@ const martian = Martian_Mono({
 
 const title = "Kenny · AI Engineer";
 
+const INTRO_SCRIPT =
+  "try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('intro')}catch(e){}";
+
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title,
@@ -52,6 +55,10 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Hides the hero chrome before first paint so it can enter instead of flashing in. */}
+        <script dangerouslySetInnerHTML={{ __html: INTRO_SCRIPT }} />
+      </head>
       <body className={`${mona.variable} ${martian.variable} bg-surface font-sans text-ink antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <SmoothScroll>

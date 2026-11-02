@@ -12,7 +12,7 @@ test("the hero lens runs a real edge filter over the headline and follows the po
   await page.goto("/");
   const headline = page.getByTestId("sobel-headline");
   await expect(headline).toHaveAttribute("data-state", "live", { timeout: 15_000 });
-  await expect(page.getByText(/megapixels in [\d.]+ ms/)).toBeVisible();
+  await expect(page.getByText(/megapixels in [\d.]+ ms/).filter({ visible: true })).toBeVisible();
 
   const readout = headline.getByText(/% edge px/);
   const atRest = Number((await readout.innerText()).replace(/[^\d.]/g, ""));
@@ -23,6 +23,33 @@ test("the hero lens runs a real edge filter over the headline and follows the po
   const before = await lens.evaluate((el) => getComputedStyle(el).transform);
   await page.mouse.move(box.x + box.width * 0.2, box.y + box.height * 0.85, { steps: 6 });
   await expect.poll(() => lens.evaluate((el) => getComputedStyle(el).transform)).not.toBe(before);
+});
+
+test("the kernel switch runs a different filter and the readout names what it measures", async ({ page }) => {
+  await page.goto("/");
+  const headline = page.getByTestId("sobel-headline");
+  await expect(headline).toHaveAttribute("data-state", "live", { timeout: 15_000 });
+  const kernels = page.getByRole("group", { name: "Kernel" });
+  await expect(kernels.getByRole("button", { name: "Sobel" })).toHaveAttribute("aria-pressed", "true");
+
+  await kernels.getByRole("button", { name: "Laplacian" }).click();
+  await expect(kernels.getByRole("button", { name: "Laplacian" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("#top [aria-live]")).toContainText(/ran a 3×3 Laplacian filter over this headline, [\d.]+ megapixels in [\d.]+ ms/);
+  await expect(headline.getByText("Laplacian 3×3")).toBeAttached();
+
+  // A blur has no edges, so its readout is mean ink under the window.
+  await kernels.getByRole("button", { name: "Gaussian" }).click();
+  await expect(headline.getByText(/% ink$/)).toBeAttached();
+  await expect(headline.getByText(/% edge px/)).toHaveCount(0);
+});
+
+test("the hero entrance hands every element back fully visible", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator("html")).not.toHaveClass(/\bintro\b/);
+  for (const el of await page.locator("[data-intro]").all()) {
+    if ((await el.getAttribute("data-intro")) === "ping") continue;
+    await expect(el).toHaveCSS("opacity", "1");
+  }
 });
 
 test("nav anchor scrolls to the work section", async ({ page }) => {
@@ -157,7 +184,7 @@ test.describe("canvases follow the page", () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/");
     const headline = page.getByTestId("sobel-headline");
-    await expect(headline.locator(".w-px.bg-accent")).toHaveCSS("opacity", "1");
+    await expect(headline.locator('[data-scan="intro"]')).toHaveCSS("opacity", "1");
     await page.setViewportSize({ width: 900, height: 900 });
     await expect(headline).toHaveAttribute("data-state", "live", { timeout: 15_000 });
     const sizes = await headline.evaluate((el) => ({

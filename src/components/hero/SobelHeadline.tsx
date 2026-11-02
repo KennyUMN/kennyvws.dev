@@ -2,7 +2,18 @@
 
 import { useEffect, useRef } from "react";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { gsap } from "@/lib/gsap";
+import { EASE_OUT } from "@/lib/motion";
 import { cn } from "@/lib/utils";
+import {
+  gaussianBlur,
+  kernelById,
+  laplacianMagnitude,
+  sobelMagnitude,
+  summedArea,
+  windowSum,
+  type KernelId,
+} from "./kernels";
 
 // The lens rests on an 8px grid, like a strided window over a feature map.
 const STRIDE = 8;
@@ -10,11 +21,23 @@ const STRIDE = 8;
 const EDGE_T = 255;
 // Maps |G| to alpha so strong glyph edges saturate.
 const GAIN = 255 / 520;
+// |Laplacian| above one full-step neighbour counts as an edge pixel; the gain saturates hard steps.
+const LAP_T = 255;
+const LAP_GAIN = 255 / 420;
+// Blur radius per box pass as a share of the font size, so the softening reads at every width.
+const BLUR_EM = 0.035;
+// Lens spring: stiffness (1/s^2) and damping ratio. Under 1, so the window settles with a slight overshoot.
+const SPRING_K = 320;
+const SPRING_ZETA = 0.78;
+const SPRING_C = 2 * SPRING_ZETA * Math.sqrt(SPRING_K);
+const SPRING_STEP_S = 1 / 240;
+const SWEEP_S = 0.5;
 
 interface Geometry {
   W: number;
   H: number;
   dpr: number;
+  fs: number;
   w: number;
   h: number;
   m: number;
@@ -25,12 +48,18 @@ interface Geometry {
   rest: { x: number; y: number };
 }
 
+export interface FilterRun {
+  kernel: KernelId;
+  /** The measured cost of the convolution, e.g. "0.41 megapixels in 9.9 ms". */
+  stat: string;
+}
+
 interface SobelHeadlineProps {
   id: string;
   text: string;
+  kernel: KernelId;
   className?: string;
-  /** Receives the measured cost of the convolution, e.g. "0.41 megapixels in 9.9 ms". */
-  onMeasured?: (stat: string) => void;
+  onMeasured?: (run: FilterRun) => void;
 }
 
 const TICKS = [
@@ -47,11 +76,12 @@ function readAccent(): [number, number, number] {
 }
 
 /**
- * The hero headline, with a real 3x3 Sobel filter computed over its own rendered glyphs.
- * An intro scan convolves the line left to right, then a lens follows the pointer and reports
- * the share of edge pixels under it. The h1 stays plain text; everything drawn is aria-hidden.
+ * The hero headline, with real convolutions computed over its own rendered glyphs.
+ * An intro scan runs a 3x3 Sobel filter left to right, then a lens follows the pointer on a spring
+ * and reports what the selected kernel measures under it. The h1 stays plain text; everything
+ * drawn is aria-hidden.
  */
-export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadlineProps) {
+export function SobelHeadline({ id, text, kernel, className, onMeasured }: SobelHeadlineProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const h1Ref = useRef<HTMLHeadingElement>(null);
   const plateRef = useRef<HTMLDivElement>(null);
@@ -59,9 +89,13 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
   const scanRef = useRef<HTMLDivElement>(null);
   const lensRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<HTMLDivElement>(null);
+  const lensScanRef = useRef<HTMLDivElement>(null);
   const densityRef = useRef<HTMLSpanElement>(null);
   const measuredRef = useRef(onMeasured);
+  const kernelRef = useRef(kernel);
+  const apiRef = useRef<{ setKernel: (k: KernelId) => void } | null>(null);
   const reduce = useReducedMotion();
+  const info = kernelById(kernel);
 
   useEffect(() => {
     measuredRef.current = onMeasured;
@@ -75,8 +109,9 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
     const scan = scanRef.current;
     const lens = lensRef.current;
     const view = viewRef.current;
+    const lensScan = lensScanRef.current;
     const densityEl = densityRef.current;
-    if (!wrap || !h1 || !plate || !band || !scan || !lens || !view || !densityEl) return;
+    if (!wrap || !h1 || !plate || !band || !scan || !lens || !view || !lensScan || !densityEl) return;
 
     const canvas = document.createElement("canvas");
     canvas.className = "absolute left-0 top-0 will-change-transform";
@@ -86,22 +121,30 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
     let G: Geometry;
     let A: Uint8Array;
     let M: Uint16Array;
+    let L: Uint16Array | null = null;
+    let B: Uint8Array | null = null;
+    let tmp: Uint8Array | null = null;
+    let weights: Uint8Array;
     let img: ImageData;
     let out: Uint8ClampedArray;
     let ctxOut: CanvasRenderingContext2D;
     let integral: Uint32Array | null = null;
+    let integralScale = 1;
     let computedTo = 1;
-    let msTotal = 0;
+    let sobelMs = 0;
+    let sobelReady = false;
     let phase: "idle" | "intro" | "live" = "idle";
+    let intro: gsap.core.Tween | null = null;
+    let sweep: gsap.core.Tween | null = null;
+    let ghost: HTMLCanvasElement | null = null;
     let raf = 0;
     let last = 0;
-    let introT0 = 0;
     let visible = true;
     let shown = "";
     // On touch screens there is no hover to move the lens off the words, so it waits for a tap.
     let lensOn = !window.matchMedia("(pointer: coarse)").matches;
     let disposed = false;
-    const pos = { x: 0, y: 0, tx: 0, ty: 0 };
+    const pos = { x: 0, y: 0, tx: 0, ty: 0, vx: 0, vy: 0 };
 
     function measure(): Geometry {
       const r = h1!.getBoundingClientRect();
@@ -116,7 +159,7 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
       const lines = Math.max(1, Math.round(r.height / LH));
       const lw = Math.min(Math.round((fs * 4.8) / STRIDE) * STRIDE, Math.floor((r.width * 0.55) / STRIDE) * STRIDE);
       const lh = LH * Math.min(2, lines);
-      return { W: Math.round(w * dpr), H: Math.round(h * dpr), dpr, w, h, m, lw, lh, LH, lines, rest: { x: 0, y: 0 } };
+      return { W: Math.round(w * dpr), H: Math.round(h * dpr), dpr, fs, w, h, m, lw, lh, LH, lines, rest: { x: 0, y: 0 } };
     }
 
     // Draw the live DOM headline word by word at the positions the layout engine chose.
@@ -186,6 +229,8 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
       G = measure();
       A = rasterize(G);
       M = new Uint16Array(G.W * G.H);
+      weights = new Uint8Array(G.W * G.H);
+      L = B = tmp = null;
       canvas.width = G.W;
       canvas.height = G.H;
       canvas.style.width = `${G.w}px`;
@@ -196,7 +241,8 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
       paint();
       computedTo = 1;
       integral = null;
-      msTotal = 0;
+      sobelMs = 0;
+      sobelReady = false;
       lens!.style.width = `${G.lw}px`;
       lens!.style.height = `${G.lh}px`;
       band!.style.width = `${G.w}px`;
@@ -204,66 +250,72 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
       scan!.style.height = `${G.h - 2 * G.m}px`;
     }
 
-    // 3x3 Sobel over device-pixel columns [c0, c1).
-    function sobel(c0: number, c1: number) {
-      const W = G.W;
-      const H = G.H;
-      c0 = Math.max(1, c0);
-      c1 = Math.min(W - 1, c1);
-      if (c1 <= c0) return;
-      const t0 = performance.now();
-      for (let y = 1; y < H - 1; y++) {
-        let i = y * W + c0;
-        for (let x = c0; x < c1; x++, i++) {
-          const a = A[i - W - 1], b = A[i - W], c = A[i - W + 1];
-          const d = A[i - 1], f = A[i + 1];
-          const g = A[i + W - 1], h = A[i + W], k = A[i + W + 1];
-          const gx = c + 2 * f + k - a - 2 * d - g;
-          const gy = g + 2 * h + k - a - 2 * b - c;
-          const mag = Math.sqrt(gx * gx + gy * gy);
-          M[i] = mag;
-          out[i * 4 + 3] = mag * GAIN;
-        }
-      }
-      ctxOut.putImageData(img, 0, 0, c0, 0, c1 - c0, H);
-      msTotal += performance.now() - t0;
-    }
-
+    // The intro convolves device-pixel columns [computedTo, col) and shows their Sobel response.
     function sobelTo(col: number) {
       col = Math.min(G.W, col);
-      if (col > computedTo) {
-        sobel(computedTo, col);
-        computedTo = col;
+      if (col <= computedTo) return;
+      const t0 = performance.now();
+      sobelMagnitude(A, G.W, G.H, M, computedTo, col);
+      sobelMs += performance.now() - t0;
+      for (let y = 0; y < G.H; y++) {
+        for (let x = computedTo, i = y * G.W + computedTo; x < col; x++, i++) out[i * 4 + 3] = M[i] * GAIN;
       }
+      ctxOut.putImageData(img, 0, 0, computedTo, 0, col - computedTo, G.H);
+      computedTo = col;
+      if (col >= G.W) sobelReady = true;
     }
 
-    // Summed-area table of the edge mask, so any window's edge count is four lookups.
-    function buildIntegral() {
-      const W = G.W;
-      const H = G.H;
-      const W1 = W + 1;
-      const S = new Uint32Array(W1 * (H + 1));
-      for (let y = 0; y < H; y++) {
-        let row = 0;
-        for (let x = 0; x < W; x++) {
-          row += M[y * W + x] > EDGE_T ? 1 : 0;
-          S[(y + 1) * W1 + x + 1] = S[y * W1 + x + 1] + row;
+    // Convolution time only: the threshold, display and summed-area passes are not counted.
+    function convolve(k: KernelId): number {
+      const N = G.W * G.H;
+      if (k === "sobel" || k === "mask") {
+        if (!sobelReady) sobelTo(G.W);
+        return sobelMs;
+      }
+      const t0 = performance.now();
+      if (k === "laplacian") laplacianMagnitude(A, G.W, G.H, (L ??= new Uint16Array(N)));
+      else gaussianBlur(A, G.W, G.H, Math.max(1, Math.round(G.fs * BLUR_EM * G.dpr)), (B ??= new Uint8Array(N)), (tmp ??= new Uint8Array(N)));
+      return performance.now() - t0;
+    }
+
+    // Display alpha and readout weights for one kernel, then the summed-area table behind the readout.
+    function applyKernel(k: KernelId) {
+      const ms = convolve(k);
+      const N = G.W * G.H;
+      integralScale = 1;
+      if (k === "sobel" || k === "mask") {
+        for (let i = 0; i < N; i++) {
+          const edge = M[i] > EDGE_T;
+          weights[i] = edge ? 1 : 0;
+          out[i * 4 + 3] = k === "mask" ? (edge ? 255 : 0) : M[i] * GAIN;
+        }
+      } else if (k === "laplacian") {
+        for (let i = 0; i < N; i++) {
+          weights[i] = L![i] > LAP_T ? 1 : 0;
+          out[i * 4 + 3] = L![i] * LAP_GAIN;
+        }
+      } else {
+        // The readout is mean ink under the window, so weights carry the full 0-to-255 value.
+        integralScale = 255;
+        for (let i = 0; i < N; i++) {
+          weights[i] = B![i];
+          out[i * 4 + 3] = B![i];
         }
       }
-      integral = S;
-      measuredRef.current?.(`${((G.W * G.H) / 1e6).toFixed(2)} megapixels in ${msTotal.toFixed(1)} ms`);
+      integral = summedArea(weights, G.W, G.H);
+      ctxOut.putImageData(img, 0, 0);
+      measuredRef.current?.({ kernel: k, stat: `${((G.W * G.H) / 1e6).toFixed(2)} megapixels in ${ms.toFixed(1)} ms` });
     }
 
     function density(x: number, y: number) {
       if (!integral) return 0;
-      const W1 = G.W + 1;
       const d = G.dpr;
-      const x0 = Math.round(x * d);
-      const y0 = Math.round(y * d);
+      const x0 = Math.max(0, Math.round(x * d));
+      const y0 = Math.max(0, Math.round(y * d));
       const x1 = Math.min(G.W, Math.round((x + G.lw) * d));
       const y1 = Math.min(G.H, Math.round((y + G.lh) * d));
-      const S = integral;
-      return (100 * (S[y1 * W1 + x1] - S[y0 * W1 + x1] - S[y1 * W1 + x0] + S[y0 * W1 + x0])) / ((x1 - x0) * (y1 - y0));
+      const area = (x1 - x0) * (y1 - y0);
+      return area > 0 ? (100 * windowSum(integral, G.W, x0, y0, x1, y1)) / (area * integralScale) : 0;
     }
 
     // Window top-left for a desired centre: x steps on the stride grid, y steps by whole lines,
@@ -281,6 +333,7 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
       const ry = Math.round(y * G.dpr) / G.dpr;
       lens!.style.transform = `translate3d(${rx}px, ${ry}px, 0)`;
       canvas.style.transform = `translate3d(${-rx}px, ${-ry}px, 0)`;
+      if (ghost) ghost.style.transform = canvas.style.transform;
       const d = density(rx, ry).toFixed(1);
       if (d !== shown) {
         densityEl!.textContent = d;
@@ -288,59 +341,77 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
       }
     }
 
+    function showLens() {
+      if (lensOn) return;
+      lensOn = true;
+      lens!.style.opacity = "1";
+    }
+
     function finishIntro() {
+      intro?.kill();
+      intro = null;
       sobelTo(G.W);
-      buildIntegral();
+      applyKernel(kernelRef.current);
       if (canvas.parentNode === band) {
         // Hand the live canvas to the lens; a copy stays in the band while it fades out.
-        const ghost = document.createElement("canvas");
-        ghost.width = G.W;
-        ghost.height = G.H;
-        ghost.className = canvas.className;
-        ghost.style.cssText = canvas.style.cssText;
-        ghost.getContext("2d")!.drawImage(canvas, 0, 0);
-        band!.replaceChildren(ghost);
+        const copy = document.createElement("canvas");
+        copy.width = G.W;
+        copy.height = G.H;
+        copy.className = canvas.className;
+        copy.style.cssText = canvas.style.cssText;
+        copy.getContext("2d")!.drawImage(canvas, 0, 0);
+        band!.replaceChildren(copy);
         scan!.style.opacity = "0";
         later(() => (band!.style.opacity = "0"), 260);
         later(() => band!.replaceChildren(), 1000);
       }
       view!.appendChild(canvas);
       const t = targetFor(G.rest.x, G.rest.y);
-      pos.x = pos.tx = t.x;
-      pos.y = pos.ty = t.y;
+      Object.assign(pos, { x: t.x, y: t.y, tx: t.x, ty: t.y, vx: 0, vy: 0 });
       placeLens(t.x, t.y);
       if (lensOn) later(() => (lens!.style.opacity = "1"), reduce ? 0 : 260);
       phase = "live";
       later(() => (wrap!.dataset.state = "live"), reduce ? 0 : 1000);
     }
 
-    const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+    function introFrame(p: number) {
+      // The scan frontier: every column left of it has been convolved.
+      const f = p * G.w;
+      sobelTo(Math.ceil(f * G.dpr) + 2);
+      band!.style.transform = `translate3d(${f - G.w}px, 0, 0)`;
+      (band!.firstChild as HTMLElement).style.transform = `translate3d(${G.w - f}px, 0, 0)`;
+      scan!.style.transform = `translate3d(${Math.min(f, G.w - 1)}px, ${G.m}px, 0)`;
+    }
+
+    // Semi-implicit Euler in fixed substeps keeps the spring stable at any frame rate. The drawn
+    // position is clamped to the plate as well as the target, so an overshoot never leaves it.
+    function stepSpring(dt: number) {
+      for (let left = dt; left > 0; left -= SPRING_STEP_S) {
+        const h = Math.min(left, SPRING_STEP_S);
+        pos.vx += (SPRING_K * (pos.tx - pos.x) - SPRING_C * pos.vx) * h;
+        pos.vy += (SPRING_K * (pos.ty - pos.y) - SPRING_C * pos.vy) * h;
+        pos.x += pos.vx * h;
+        pos.y += pos.vy * h;
+      }
+      const cx = Math.min(G.w - G.lw, Math.max(0, pos.x));
+      const cy = Math.min(G.h - G.lh, Math.max(0, pos.y));
+      if (cx !== pos.x) pos.vx = 0;
+      if (cy !== pos.y) pos.vy = 0;
+      pos.x = cx;
+      pos.y = cy;
+      const settled =
+        Math.abs(pos.tx - pos.x) < 0.3 && Math.abs(pos.ty - pos.y) < 0.3 && Math.hypot(pos.vx, pos.vy) < 2;
+      if (settled) Object.assign(pos, { x: pos.tx, y: pos.ty, vx: 0, vy: 0 });
+      return !settled;
+    }
 
     function frame(now: number) {
       raf = 0;
       const dt = Math.min(0.05, (now - (last || now)) / 1000);
       last = now;
-      let more = false;
-      if (phase === "intro") {
-        const p = Math.min(1, Math.max(0, (now - introT0) / (1100 + G.w * 0.25)));
-        // The scan frontier: every column left of it has been convolved.
-        const f = easeInOut(p) * G.w;
-        sobelTo(Math.ceil(f * G.dpr) + 2);
-        band!.style.transform = `translate3d(${f - G.w}px, 0, 0)`;
-        (band!.firstChild as HTMLElement).style.transform = `translate3d(${G.w - f}px, 0, 0)`;
-        scan!.style.transform = `translate3d(${Math.min(f, G.w - 1)}px, ${G.m}px, 0)`;
-        if (p < 1) more = true;
-        else finishIntro();
-      } else if (phase === "live") {
-        const k = 1 - Math.exp(-dt / 0.085);
-        pos.x += (pos.tx - pos.x) * k;
-        pos.y += (pos.ty - pos.y) * k;
-        if (Math.abs(pos.tx - pos.x) < 0.3 && Math.abs(pos.ty - pos.y) < 0.3) {
-          pos.x = pos.tx;
-          pos.y = pos.ty;
-        } else more = true;
-        placeLens(pos.x, pos.y);
-      }
+      if (phase !== "live") return;
+      const more = stepSpring(dt);
+      placeLens(pos.x, pos.y);
       if (more) kick();
     }
 
@@ -354,22 +425,59 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
       const cx = e.clientX - pr.left;
       const cy = e.clientY - pr.top;
       if (cx < 0 || cx > G.w || cy < 0 || cy > G.h) return;
-      if (!lensOn) {
-        lensOn = true;
-        lens!.style.opacity = "1";
-      }
+      showLens();
       const t = targetFor(cx, cy);
       pos.tx = t.x;
       pos.ty = t.y;
       if (reduce) {
-        pos.x = t.x;
-        pos.y = t.y;
+        Object.assign(pos, { x: t.x, y: t.y, vx: 0, vy: 0 });
         placeLens(t.x, t.y);
         return;
       }
       last = 0;
       kick();
     }
+
+    function clearSweep() {
+      sweep?.kill();
+      sweep = null;
+      ghost?.remove();
+      ghost = null;
+      lensScan!.style.opacity = "0";
+    }
+
+    // A new kernel re-scans the window: the old response is wiped left to right by the new one.
+    function setKernel(k: KernelId) {
+      if (phase !== "live") return;
+      clearSweep();
+      if (!reduce) {
+        ghost = document.createElement("canvas");
+        ghost.width = G.W;
+        ghost.height = G.H;
+        ghost.className = canvas.className;
+        ghost.style.cssText = canvas.style.cssText;
+        ghost.getContext("2d")!.drawImage(canvas, 0, 0);
+        view!.appendChild(ghost);
+      }
+      applyKernel(k);
+      shown = "";
+      placeLens(pos.x, pos.y);
+      showLens();
+      if (!ghost) return;
+      const s = { p: 0 };
+      lensScan!.style.opacity = "1";
+      sweep = gsap.to(s, {
+        p: 1,
+        duration: SWEEP_S,
+        ease: EASE_OUT,
+        onUpdate: () => {
+          ghost!.style.clipPath = `inset(0 0 0 ${pos.x + s.p * G.lw}px)`;
+          lensScan!.style.transform = `translate3d(${s.p * G.lw}px, 0, 0)`;
+        },
+        onComplete: clearSweep,
+      });
+    }
+    apiRef.current = { setKernel };
 
     const onMove = (e: PointerEvent) => e.pointerType !== "touch" && aimAt(e);
     const onVisibility = () => {
@@ -405,6 +513,8 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
     // A resize mid-intro finishes the intro at the new size instead of being dropped.
     function relayout() {
       if (phase === "idle") return;
+      intro?.kill();
+      clearSweep();
       setup();
       finishIntro();
     }
@@ -443,9 +553,15 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
       band!.style.opacity = "1";
       scan!.style.opacity = "1";
       phase = "intro";
-      introT0 = performance.now() + 300;
-      last = 0;
-      kick();
+      const s = { p: 0 };
+      intro = gsap.to(s, {
+        p: 1,
+        duration: (1100 + G.w * 0.25) / 1000,
+        delay: 0.3,
+        ease: "power2.inOut",
+        onUpdate: () => introFrame(s.p),
+        onComplete: finishIntro,
+      });
     }
 
     const cs = getComputedStyle(h1);
@@ -457,6 +573,9 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
 
     return () => {
       disposed = true;
+      apiRef.current = null;
+      intro?.kill();
+      clearSweep();
       cancelAnimationFrame(raf);
       timers.forEach(clearTimeout);
       window.clearTimeout(resizeTimer);
@@ -476,6 +595,11 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
     };
   }, [reduce]);
 
+  useEffect(() => {
+    kernelRef.current = kernel;
+    apiRef.current?.setKernel(kernel);
+  }, [kernel]);
+
   return (
     <div ref={wrapRef} className="relative" data-testid="sobel-headline">
       <h1 ref={h1Ref} id={id} className={className}>
@@ -486,7 +610,7 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
           ref={bandRef}
           className="absolute left-0 top-0 overflow-hidden bg-surface opacity-0 transition-opacity duration-[600ms] will-change-transform"
         />
-        <div ref={scanRef} className="absolute left-0 top-0 w-px bg-accent opacity-0 will-change-transform" />
+        <div ref={scanRef} data-scan="intro" className="absolute left-0 top-0 w-px bg-accent opacity-0 will-change-transform" />
         <div
           ref={lensRef}
           className="absolute left-0 top-0 opacity-0 transition-opacity delay-[120ms] duration-500 will-change-transform motion-reduce:transition-none"
@@ -499,14 +623,16 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
                 "radial-gradient(circle, color-mix(in srgb, var(--ink) 20%, transparent) 0.7px, transparent 1px) -4px -4px / 8px 8px, var(--surface)",
             }}
           />
+          <div ref={lensScanRef} className="absolute inset-y-0 left-0 w-px bg-accent opacity-0 will-change-transform" />
           {TICKS.map((tick) => (
             <span key={tick} className={cn("absolute size-3 border-ink", tick)} />
           ))}
           <span className="absolute left-4 top-1.5 bg-surface max-sm:hidden px-1 py-[2px] font-mono text-[10px] leading-none text-ink-2">
-            Sobel 3×3
+            {info.chip}
           </span>
           <span className="absolute bottom-1.5 right-4 bg-surface max-sm:hidden px-1 py-[2px] font-mono text-[10px] leading-none tabular-nums text-ink">
-            <span ref={densityRef}>0.0</span>% edge px
+            <span ref={densityRef}>0.0</span>
+            {info.unit}
           </span>
         </div>
       </div>

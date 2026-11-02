@@ -86,6 +86,7 @@ export function Navbar() {
         )}
       >
         <nav
+          data-intro="nav"
           aria-label="Main"
           className="mx-auto flex h-16 w-full max-w-[1440px] items-center justify-between px-5 sm:px-8 lg:px-12"
         >

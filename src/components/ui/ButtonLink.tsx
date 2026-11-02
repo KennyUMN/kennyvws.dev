@@ -1,16 +1,16 @@
 import { cn } from "@/lib/utils";
 
-interface ButtonLinkProps {
+interface ButtonLinkProps extends Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, "href"> {
   href: string;
   children: React.ReactNode;
   variant?: "accent" | "ink" | "outline";
-  className?: string;
 }
 
-export function ButtonLink({ href, children, variant = "accent", className }: ButtonLinkProps) {
+export function ButtonLink({ href, children, variant = "accent", className, ...rest }: ButtonLinkProps) {
   return (
     <a
       href={href}
+      {...rest}
       className={cn(
         "group inline-flex min-h-12 items-center gap-3 px-5 text-[15px] font-semibold transition-[transform,background-color,color] duration-200 active:scale-[0.98]",
         {

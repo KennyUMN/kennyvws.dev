@@ -61,6 +61,19 @@ html.lenis body {
   overscroll-behavior: contain;
 }
 
+/* Hero entrance: a head script adds .intro before first paint, and the GSAP timeline in Hero takes
+   over and removes it. If that never happens, everything appears after three seconds anyway. */
+html.intro [data-intro] {
+  opacity: 0;
+  animation: intro-failsafe 0s 3s forwards;
+}
+
+@keyframes intro-failsafe {
+  to {
+    opacity: 1;
+  }
+}
+
 /* Wide display cut of Mona Sans. Width is an axis of the same family, so the
    display voice and the reading voice never fight. */
 .font-wide {
