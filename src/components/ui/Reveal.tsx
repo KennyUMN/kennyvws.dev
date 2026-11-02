@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef } from "react";
-import { gsap, MOTION_OK, useGSAP } from "@/lib/gsap";
+import { gsap, MOTION_OK } from "@/lib/gsap";
+import { useIdleGSAP } from "@/hooks/useIdleGSAP";
 import { REVEAL_FROM, SETTLE, type RevealRole } from "@/lib/motion";
 
 interface RevealProps {
@@ -17,7 +18,7 @@ const START = "top bottom-=64";
 export function Reveal({ children, delay = 0, variant = "body", className }: RevealProps) {
   const ref = useRef<HTMLDivElement>(null);
 
-  useGSAP(
+  useIdleGSAP(
     () => {
       gsap.matchMedia().add(MOTION_OK, () => {
         gsap.from(ref.current, {
@@ -28,7 +29,7 @@ export function Reveal({ children, delay = 0, variant = "body", className }: Rev
         });
       });
     },
-    { scope: ref },
+    ref,
   );
 
   return (

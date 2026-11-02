@@ -4,7 +4,8 @@ import { useRef, useState } from "react";
 import type { Project } from "@/data/projects";
 import { Reveal } from "@/components/ui/Reveal";
 import { TextLink } from "@/components/ui/TextLink";
-import { gsap, MOTION_OK, ScrollTrigger, useGSAP } from "@/lib/gsap";
+import { gsap, MOTION_OK, ScrollTrigger } from "@/lib/gsap";
+import { useIdleGSAP } from "@/hooks/useIdleGSAP";
 import { EASE_OUT, SETTLE } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { ProjectMeta } from "./ProjectMeta";
@@ -22,7 +23,7 @@ export function PipelineFeature({ project }: { project: Project }) {
   const active = hover ?? pinned;
   const stagesFor = (tag: string) => steps.filter((s) => s.uses?.includes(tag)).map((s) => s.title);
 
-  useGSAP(
+  useIdleGSAP(
     () => {
       const list = flowRef.current!;
       const mm = gsap.matchMedia();
@@ -62,7 +63,7 @@ export function PipelineFeature({ project }: { project: Project }) {
         });
       });
     },
-    { scope: flowRef },
+    flowRef,
   );
 
   return (

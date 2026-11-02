@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef } from "react";
-import { gsap, MOTION_OK, useGSAP } from "@/lib/gsap";
+import { gsap, MOTION_OK } from "@/lib/gsap";
+import { useIdleGSAP } from "@/hooks/useIdleGSAP";
 import { EASE_OUT, SETTLE } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +18,7 @@ interface SectionProps {
 export function Section({ id, title, quiet, children, className }: SectionProps) {
   const clipRef = useRef<HTMLSpanElement>(null);
 
-  useGSAP(() => {
+  useIdleGSAP(() => {
     if (!clipRef.current) return;
     gsap.matchMedia().add(MOTION_OK, () => {
       // The clip box is what gets observed: the offset child sits fully outside it until shown.

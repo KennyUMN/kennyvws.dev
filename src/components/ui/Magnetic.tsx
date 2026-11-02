@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef } from "react";
-import { FINE_POINTER, gsap, MOTION_OK, useGSAP } from "@/lib/gsap";
+import { FINE_POINTER, gsap, MOTION_OK } from "@/lib/gsap";
+import { useIdleGSAP } from "@/hooks/useIdleGSAP";
 import { cn } from "@/lib/utils";
 
 interface MagneticProps {
@@ -18,7 +19,7 @@ interface MagneticProps {
 export function Magnetic({ children, strength = 0.3, className }: MagneticProps) {
   const ref = useRef<HTMLSpanElement>(null);
 
-  useGSAP(
+  useIdleGSAP(
     () => {
       const el = ref.current!;
       gsap.matchMedia().add(`${MOTION_OK} and ${FINE_POINTER}`, () => {
@@ -53,7 +54,7 @@ export function Magnetic({ children, strength = 0.3, className }: MagneticProps)
         };
       });
     },
-    { scope: ref },
+    ref,
   );
 
   return (

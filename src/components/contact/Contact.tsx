@@ -6,7 +6,8 @@ import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Magnetic } from "@/components/ui/Magnetic";
 import { Reveal } from "@/components/ui/Reveal";
 import { TextLink } from "@/components/ui/TextLink";
-import { gsap, MOTION_OK, useGSAP } from "@/lib/gsap";
+import { gsap, MOTION_OK } from "@/lib/gsap";
+import { useIdleGSAP } from "@/hooks/useIdleGSAP";
 import { EASE_OUT, SETTLE } from "@/lib/motion";
 
 const links = [
@@ -21,7 +22,7 @@ export function Contact() {
 
   // Each imperative lands as its own beat: its words rise out of their masks and settle from a
   // slight tilt, one line after another as the statement scrolls in.
-  useGSAP(
+  useIdleGSAP(
     () => {
       gsap.matchMedia().add(MOTION_OK, () => {
         for (const line of gsap.utils.toArray<HTMLElement>("[data-line]", headingRef.current)) {
@@ -38,7 +39,7 @@ export function Contact() {
         }
       });
     },
-    { scope: headingRef },
+    headingRef,
   );
 
   return (

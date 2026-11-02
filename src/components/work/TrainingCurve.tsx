@@ -3,7 +3,8 @@
 import { useRef, useState } from "react";
 import type { EpochMetrics } from "@/data/ppeTraining";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
-import { gsap, MOTION_OK, MOTION_REDUCE, ScrollTrigger, useGSAP } from "@/lib/gsap";
+import { gsap, MOTION_OK, MOTION_REDUCE, ScrollTrigger } from "@/lib/gsap";
+import { useIdleGSAP } from "@/hooks/useIdleGSAP";
 import { layoutTop } from "@/lib/utils";
 
 const VB_W = 1000;
@@ -62,7 +63,7 @@ export function TrainingCurve({ data, source, reference }: TrainingCurveProps) {
   // Scroll is the training clock: the plot's travel up the viewport maps to epochs, ending while
   // the whole plot is still on screen. Applied after mount, so the server render and the first
   // client render agree (epoch 1).
-  useGSAP(() => {
+  useIdleGSAP(() => {
     const apply = (p: number) => {
       const i = Math.round(p * last);
       const x = (i / last) * 100;

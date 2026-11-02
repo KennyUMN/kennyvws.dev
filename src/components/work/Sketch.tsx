@@ -2,7 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import type { Project } from "@/data/projects";
-import { FINE_POINTER, gsap, MOTION_OK, ScrollTrigger, useGSAP } from "@/lib/gsap";
+import { FINE_POINTER, gsap, MOTION_OK, ScrollTrigger } from "@/lib/gsap";
+import { useIdleGSAP } from "@/hooks/useIdleGSAP";
 
 type SketchKind = NonNullable<Project["sketch"]>;
 
@@ -29,7 +30,7 @@ export function Sketch({ kind, active }: { kind: SketchKind; active: boolean }) 
   const ref = useRef<SVGSVGElement>(null);
   const tl = useRef<gsap.core.Timeline | null>(null);
 
-  useGSAP(
+  useIdleGSAP(
     () => {
       const mm = gsap.matchMedia();
       mm.add(MOTION_OK, () => {
@@ -45,7 +46,7 @@ export function Sketch({ kind, active }: { kind: SketchKind; active: boolean }) 
         };
       });
     },
-    { scope: ref },
+    ref,
   );
 
   useEffect(() => {

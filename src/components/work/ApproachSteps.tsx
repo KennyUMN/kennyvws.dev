@@ -2,7 +2,8 @@
 
 import { useRef } from "react";
 import type { Project } from "@/data/projects";
-import { gsap, MOTION_OK, MOTION_REDUCE, ScrollTrigger, useGSAP } from "@/lib/gsap";
+import { gsap, MOTION_OK, MOTION_REDUCE, ScrollTrigger } from "@/lib/gsap";
+import { useIdleGSAP } from "@/hooks/useIdleGSAP";
 
 type Step = NonNullable<Project["approach"]>[number];
 
@@ -13,7 +14,7 @@ type Step = NonNullable<Project["approach"]>[number];
 export function ApproachSteps({ steps }: { steps: Step[] }) {
   const ref = useRef<HTMLOListElement>(null);
 
-  useGSAP(
+  useIdleGSAP(
     () => {
       const list = ref.current!;
       const items = gsap.utils.toArray<HTMLElement>("[data-step]", list);
@@ -43,7 +44,7 @@ export function ApproachSteps({ steps }: { steps: Step[] }) {
         mark(trigger.progress);
       });
     },
-    { scope: ref },
+    ref,
   );
 
   return (

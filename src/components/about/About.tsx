@@ -5,7 +5,8 @@ import { about } from "@/data/site";
 import { skillGroups } from "@/data/skills";
 import { Reveal } from "@/components/ui/Reveal";
 import { Section } from "@/components/ui/Section";
-import { gsap, MOTION_OK, SplitText, useGSAP } from "@/lib/gsap";
+import { gsap, MOTION_OK, SplitText } from "@/lib/gsap";
+import { useIdleGSAP } from "@/hooks/useIdleGSAP";
 import { EASE_OUT, SETTLE } from "@/lib/motion";
 
 export function About() {
@@ -13,7 +14,7 @@ export function About() {
   const leadRef = useRef<HTMLParagraphElement>(null);
   const toolsRef = useRef<HTMLDListElement>(null);
 
-  useGSAP(() => {
+  useIdleGSAP(() => {
     gsap.matchMedia().add(MOTION_OK, () => {
       // The lead rises line by line from behind its own mask, re-split if the layout reflows.
       const split = SplitText.create(leadRef.current, {

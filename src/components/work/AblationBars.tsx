@@ -2,7 +2,8 @@
 
 import { useRef } from "react";
 import type { Project } from "@/data/projects";
-import { gsap, MOTION_OK, useGSAP } from "@/lib/gsap";
+import { gsap, MOTION_OK } from "@/lib/gsap";
+import { useIdleGSAP } from "@/hooks/useIdleGSAP";
 import { EASE_OUT, SETTLE } from "@/lib/motion";
 
 const SCALE_MAX = 0.7;
@@ -10,7 +11,7 @@ const SCALE_MAX = 0.7;
 export function AblationBars({ ablation }: { ablation: NonNullable<Project["ablation"]> }) {
   const ref = useRef<HTMLUListElement>(null);
 
-  useGSAP(
+  useIdleGSAP(
     () => {
       gsap.matchMedia().add(MOTION_OK, () => {
         gsap.from("[data-bar]", {
@@ -23,7 +24,7 @@ export function AblationBars({ ablation }: { ablation: NonNullable<Project["abla
         });
       });
     },
-    { scope: ref },
+    ref,
   );
 
   return (
