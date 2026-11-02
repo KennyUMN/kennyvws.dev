@@ -14,6 +14,9 @@ const DOT_K = 0.86;
 const TAU = Math.PI * 2;
 // The shimmer stops this long after the last scroll or pointer input; the frame stays as drawn.
 const SETTLE_MS = 1500;
+// The drawn timestep eases toward the scroll's timestep with this time constant, so a flick of the
+// wheel rewinds the noise smoothly instead of in steps.
+const SCRUB_TAU_S = 0.12;
 
 // Nichol and Dhariwal cosine schedule: abar(t) = f(t) / f(0), f(t) = cos^2(((t/T + s) / (1 + s)) * pi/2).
 const f = (t: number) => Math.cos((((t / T + S) / (1 + S)) * Math.PI) / 2) ** 2;
@@ -65,6 +68,7 @@ export function Signoff({ word }: { word: string }) {
     let EY = new Float32Array(0);
     let TL = new Float32Array(0);
     let scrollT = reduce ? 0 : T;
+    let targetT = scrollT;
     let visible = false;
     let raf = 0;
     let last = 0;
@@ -254,8 +258,11 @@ export function Signoff({ word }: { word: string }) {
       const dt = last ? Math.min(0.05, (now - last) / 1000) : 1 / 60;
       last = now;
       inject();
+      scrollT += (targetT - scrollT) * (1 - Math.exp(-dt / SCRUB_TAU_S));
+      if (Math.abs(targetT - scrollT) < 0.5) scrollT = targetT;
       const tMax = draw(dt);
-      if (tMax > 0 && (healing || now - lastInput < SETTLE_MS)) schedule();
+      const scrubbing = scrollT !== targetT;
+      if (scrubbing || (tMax > 0 && (healing || now - lastInput < SETTLE_MS))) schedule();
       else last = 0;
     }
 
@@ -294,8 +301,10 @@ export function Signoff({ word }: { word: string }) {
     const onProgress = (p: number) => {
       if (reduce) return;
       const next = Math.round(T * (1 - p) * (1 - p));
-      if (next !== scrollT) {
-        scrollT = next;
+      if (next !== targetT) {
+        targetT = next;
+        // Off screen nothing draws, so the frame waiting there is already the right one.
+        if (!visible) scrollT = next;
         wake();
       }
     };

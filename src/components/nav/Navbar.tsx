@@ -18,13 +18,10 @@ export function Navbar() {
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const headerRef = useRef<HTMLElement>(null);
 
+  // Reads the scroll position itself: a trigger ending at "max" turns inactive at the very bottom.
   useGSAP(() => {
-    const trigger = ScrollTrigger.create({
-      start: SCROLLED_PX,
-      end: "max",
-      onToggle: (self) => setScrolled(self.isActive),
-    });
-    setScrolled(trigger.isActive);
+    ScrollTrigger.create({ onUpdate: (self) => setScrolled(self.scroll() > SCROLLED_PX) });
+    setScrolled(window.scrollY > SCROLLED_PX);
   });
 
   useEffect(() => {

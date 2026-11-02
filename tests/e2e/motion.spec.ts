@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { contact } from "../../src/data/site";
 
 async function scrollToProgress(page: Page, selector: string, progress: number) {
   // Mirrors the chart's scroll offsets: plot top at 85% of the viewport to plot top at 25%.
@@ -73,8 +74,9 @@ test.describe("narrow screens with motion on", () => {
   test("headings that wrap to two lines still reveal", async ({ page }) => {
     await page.goto("/");
     await page.evaluate(() => (document.documentElement.style.scrollBehavior = "auto"));
+    // The Work heading reveals as one line, the closing statement word by word.
     const lines = page.locator("#work-heading [data-reveal], #contact-heading [data-reveal]");
-    await expect(lines).toHaveCount(4);
+    await expect(lines).toHaveCount(1 + contact.closing.split(" ").length);
     for (const line of await lines.all()) {
       await line.evaluate((el) => el.closest("h2")!.scrollIntoView({ block: "center" }));
       await expect

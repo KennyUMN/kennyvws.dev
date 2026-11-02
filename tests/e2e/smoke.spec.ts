@@ -59,6 +59,14 @@ test("nav anchor scrolls to the work section", async ({ page }) => {
   await expect(page.locator("#work")).toBeInViewport();
 });
 
+test("the nav keeps its backing all the way to the page end", async ({ page }) => {
+  await page.goto("/");
+  const bar = page.locator("header > div").first();
+  await expect(bar).not.toHaveClass(/backdrop-blur/);
+  await page.evaluate(() => window.scrollTo({ top: document.body.scrollHeight, behavior: "instant" }));
+  await expect(bar).toHaveClass(/backdrop-blur/);
+});
+
 test("résumé links point at the PDF", async ({ page }) => {
   await page.goto("/");
   for (const link of await page.getByRole("link", { name: "Résumé" }).all()) {

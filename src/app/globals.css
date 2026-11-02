@@ -74,6 +74,12 @@ html.intro [data-intro] {
   }
 }
 
+/* SplitText line masks clip at the line box; a little padding keeps descenders whole. */
+.about-line-mask {
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
+}
+
 /* Wide display cut of Mona Sans. Width is an axis of the same family, so the
    display voice and the reading voice never fight. */
 .font-wide {
