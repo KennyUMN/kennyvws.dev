@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, m, useMotionValueEvent, useScroll } from "motion/react";
 import { navItems, sectionIds } from "@/data/nav";
 import { site } from "@/data/site";
 import { useActiveSection } from "@/hooks/useActiveSection";
-import { EASE_OUT } from "@/lib/motion";
+import { ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
+
+const SCROLLED_PX = 8;
+const SHEET_ITEMS = [...navItems, { id: "resume", label: "Résumé", href: site.resume }];
 import { ThemeToggle } from "./ThemeToggle";
 
 export function Navbar() {
@@ -16,10 +18,14 @@ export function Navbar() {
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const headerRef = useRef<HTMLElement>(null);
 
-  const { scrollY } = useScroll();
-  useMotionValueEvent(scrollY, "change", (y) => setScrolled(y > 8));
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => setScrolled(window.scrollY > 8), []);
+  useGSAP(() => {
+    const trigger = ScrollTrigger.create({
+      start: SCROLLED_PX,
+      end: "max",
+      onToggle: (self) => setScrolled(self.isActive),
+    });
+    setScrolled(trigger.isActive);
+  });
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -71,7 +77,8 @@ export function Navbar() {
   }, [open]);
 
   return (
-    <header ref={headerRef} className="fixed inset-x-0 top-0 z-50">
+    // While the sheet is open, wheel input over the header falls through to the locked native scroll.
+    <header ref={headerRef} data-lenis-prevent={open || undefined} className="fixed inset-x-0 top-0 z-50">
       <div
         className={cn(
           "relative z-10 border-b transition-colors duration-300",
@@ -137,38 +144,31 @@ export function Navbar() {
         </nav>
       </div>
 
-      <AnimatePresence>
-        {open && (
-          <m.div
-            id="mobile-menu"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-surface pt-16 md:hidden"
-          >
-            <ul className="flex flex-col px-5 pt-6 sm:px-8">
-              {[...navItems, { id: "resume", label: "Résumé", href: site.resume }].map((item, i) => (
-                <m.li
-                  key={item.id}
-                  className="border-b border-rule"
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.45, delay: 0.04 + i * 0.05, ease: EASE_OUT }}
-                >
-                  <a
-                    href={item.href}
-                    onClick={() => setOpen(false)}
-                    className="font-wide flex min-h-16 items-center text-4xl font-extrabold tracking-[-0.03em]"
-                  >
-                    {item.label}
-                  </a>
-                </m.li>
-              ))}
-            </ul>
-          </m.div>
-        )}
-      </AnimatePresence>
+      <div
+        id="mobile-menu"
+        data-open={open}
+        inert={!open}
+        className="group/sheet invisible fixed inset-0 bg-surface pt-16 opacity-0 [transition:opacity_200ms,visibility_0s_200ms] data-[open=true]:visible data-[open=true]:opacity-100 data-[open=true]:[transition:opacity_200ms,visibility_0s] md:hidden motion-reduce:transition-none"
+      >
+        <ul className="flex flex-col px-5 pt-6 sm:px-8">
+          {SHEET_ITEMS.map((item, i) => (
+            <li
+              key={item.id}
+              data-reveal
+              className="translate-y-4 border-b border-rule opacity-0 transition-[opacity,transform] duration-[450ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-data-[open=true]/sheet:translate-y-0 group-data-[open=true]/sheet:opacity-100"
+              style={{ transitionDelay: open ? `${40 + i * 50}ms` : "0ms" }}
+            >
+              <a
+                href={item.href}
+                onClick={() => setOpen(false)}
+                className="font-wide flex min-h-16 items-center text-4xl font-extrabold tracking-[-0.03em]"
+              >
+                {item.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
     </header>
   );
 }

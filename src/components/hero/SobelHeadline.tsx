@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useReducedMotion } from "motion/react";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { cn } from "@/lib/utils";
 
 // The lens rests on an 8px grid, like a strided window over a feature map.
@@ -61,7 +61,7 @@ export function SobelHeadline({ id, text, className, onMeasured }: SobelHeadline
   const viewRef = useRef<HTMLDivElement>(null);
   const densityRef = useRef<HTMLSpanElement>(null);
   const measuredRef = useRef(onMeasured);
-  const reduce = useReducedMotion() ?? false;
+  const reduce = useReducedMotion();
 
   useEffect(() => {
     measuredRef.current = onMeasured;

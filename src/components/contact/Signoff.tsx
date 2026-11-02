@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useReducedMotion, useScroll } from "motion/react";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { ScrollTrigger } from "@/lib/gsap";
 
 const T = 1000;
 const S = 0.008;
@@ -40,8 +41,7 @@ export function Signoff({ word }: { word: string }) {
   const plateRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const readoutRef = useRef<HTMLSpanElement>(null);
-  const reduce = useReducedMotion() ?? false;
-  const { scrollYProgress } = useScroll({ target: plateRef, offset: ["start end", "end end"] });
+  const reduce = useReducedMotion();
 
   useEffect(() => {
     const plate = plateRef.current;
@@ -299,7 +299,13 @@ export function Signoff({ word }: { word: string }) {
         wake();
       }
     };
-    const unsubscribe = scrollYProgress.on("change", onProgress);
+    // Progress runs from the plate's top entering the viewport to its bottom reaching the viewport bottom.
+    const trigger = ScrollTrigger.create({
+      trigger: plate,
+      start: "top bottom",
+      end: "bottom bottom",
+      onUpdate: (self) => onProgress(self.progress),
+    });
 
     const io = new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting;
@@ -351,7 +357,7 @@ export function Signoff({ word }: { word: string }) {
       ready = true;
       readPalette();
       build();
-      onProgress(scrollYProgress.get());
+      onProgress(trigger.progress);
       draw(0);
       plate.dataset.state = "ready";
       wake();
@@ -361,7 +367,7 @@ export function Signoff({ word }: { word: string }) {
       disposed = true;
       cancelAnimationFrame(raf);
       window.clearTimeout(resizeTimer);
-      unsubscribe();
+      trigger.kill();
       io.disconnect();
       ro.disconnect();
       themeObserver.disconnect();
@@ -371,7 +377,7 @@ export function Signoff({ word }: { word: string }) {
       canvas.removeEventListener("pointerleave", onLeave);
       canvas.removeEventListener("pointerdown", onDown);
     };
-  }, [reduce, scrollYProgress, word]);
+  }, [reduce, word]);
 
   return (
     <figure aria-hidden className="select-none">

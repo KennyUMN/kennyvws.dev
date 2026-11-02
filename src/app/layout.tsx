@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Martian_Mono, Mona_Sans } from "next/font/google";
 import { ThemeProvider } from "next-themes";
-import { MotionProvider } from "@/components/MotionProvider";
+import { SmoothScroll } from "@/components/SmoothScroll";
 import { site } from "@/data/site";
 import "./globals.css";
 
@@ -54,7 +54,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${mona.variable} ${martian.variable} bg-surface font-sans text-ink antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <MotionProvider>
+          <SmoothScroll>
             <a
               href="#main"
               className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:bg-accent focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-accent-ink"
@@ -62,7 +62,7 @@ export default function RootLayout({
               Skip to content
             </a>
             {children}
-          </MotionProvider>
+          </SmoothScroll>
         </ThemeProvider>
       </body>
     </html>

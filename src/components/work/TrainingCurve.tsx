@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useReducedMotion, useScroll } from "motion/react";
+import { useRef, useState } from "react";
 import type { EpochMetrics } from "@/data/ppeTraining";
+import { gsap, MOTION_OK, MOTION_REDUCE, ScrollTrigger, useGSAP } from "@/lib/gsap";
+import { layoutTop } from "@/lib/utils";
 
 const VB_W = 1000;
 const VB_H = 400;
@@ -24,7 +25,6 @@ export function TrainingCurve({ data, source, reference }: TrainingCurveProps) {
   const headRef = useRef<HTMLDivElement>(null);
   const headTextRef = useRef<HTMLSpanElement>(null);
   const peakRef = useRef<HTMLDivElement>(null);
-  const reduce = useReducedMotion();
   const [hover, setHover] = useState<number | null>(null);
 
   const last = data.length - 1;
@@ -56,13 +56,9 @@ export function TrainingCurve({ data, source, reference }: TrainingCurveProps) {
   const area = `${line} L${VB_W},${VB_H} L0,${VB_H} Z`;
 
   // Scroll is the training clock: the plot's travel up the viewport maps to epochs, ending while
-  // the whole plot is still on screen. Applied imperatively after mount, so the server render and
-  // the first client render agree (epoch 1).
-  const { scrollYProgress } = useScroll({
-    target: plotRef,
-    offset: ["start 85%", "start 25%"],
-  });
-  useEffect(() => {
+  // the whole plot is still on screen. Applied after mount, so the server render and the first
+  // client render agree (epoch 1).
+  useGSAP(() => {
     const apply = (p: number) => {
       const i = Math.round(p * last);
       const x = (i / last) * 100;
@@ -78,13 +74,19 @@ export function TrainingCurve({ data, source, reference }: TrainingCurveProps) {
       if (peakRef.current)
         peakRef.current.style.opacity = i >= peakIdx ? "1" : "0";
     };
-    if (reduce) {
-      apply(1);
-      return;
-    }
-    apply(scrollYProgress.get());
-    return scrollYProgress.on("change", apply);
-  }, [reduce, scrollYProgress, data, last, peakIdx, yMin, yMax]);
+    const mm = gsap.matchMedia();
+    mm.add(MOTION_REDUCE, () => apply(1));
+    mm.add(MOTION_OK, () => {
+      const plot = plotRef.current!;
+      const trigger = ScrollTrigger.create({
+        start: () => layoutTop(plot) - window.innerHeight * 0.85,
+        end: () => layoutTop(plot) - window.innerHeight * 0.25,
+        onUpdate: (self) => apply(self.progress),
+        onRefresh: (self) => apply(self.progress),
+      });
+      apply(trigger.progress);
+    });
+  });
 
   const onPointer = (e: React.PointerEvent<HTMLDivElement>) => {
     const box = e.currentTarget.getBoundingClientRect();
@@ -266,7 +268,7 @@ function Row({ k, v, strong }: { k: string; v: number; strong?: boolean }) {
 
 function TrainingTable({ data }: { data: EpochMetrics[] }) {
   return (
-    <div className="mt-3 max-h-72 overflow-auto border border-rule">
+    <div data-lenis-prevent className="mt-3 max-h-72 overflow-auto border border-rule">
       <table className="w-full font-mono text-[11px] tabular-nums">
         <caption className="sr-only">Per-epoch validation metrics</caption>
         <thead className="sticky top-0 bg-surface-raised text-left text-ink-2">

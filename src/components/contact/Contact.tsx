@@ -1,11 +1,12 @@
 "use client";
 
-import { m } from "motion/react";
+import { useRef } from "react";
+import { gsap, MOTION_OK, useGSAP } from "@/lib/gsap";
 import { contact, site } from "@/data/site";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Reveal } from "@/components/ui/Reveal";
 import { TextLink } from "@/components/ui/TextLink";
-import { EASE_OUT } from "@/lib/motion";
+import { EASE_OUT, SETTLE } from "@/lib/motion";
 
 const links = [
   { label: "GitHub", href: site.socials.github },
@@ -15,6 +16,23 @@ const links = [
 
 export function Contact() {
   const lines = contact.closing.split(/(?<=\.)\s+/);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  useGSAP(
+    () => {
+      gsap.matchMedia().add(MOTION_OK, () => {
+        gsap.from("[data-line]", {
+          yPercent: 105,
+          duration: 0.9,
+          stagger: 0.12,
+          ease: EASE_OUT,
+          ...SETTLE,
+          scrollTrigger: { trigger: headingRef.current, start: "top bottom-=60", once: true },
+        });
+      });
+    },
+    { scope: headingRef },
+  );
 
   return (
     <section
@@ -25,27 +43,17 @@ export function Contact() {
       <div className="mx-auto w-full max-w-[1440px] px-5 sm:px-8 lg:px-12">
         <div aria-hidden className="mb-[clamp(3rem,2rem+4vw,7rem)] border-t border-rule" />
         <h2
+          ref={headingRef}
           id="contact-heading"
           className="font-wide text-[clamp(2.4rem,0.9rem+5.4vw,7.25rem)] font-extrabold leading-[0.95] tracking-[-0.035em]"
         >
           {lines.map((line, i) => (
-            <m.span
-              key={line}
-              className="block overflow-hidden pb-[0.06em]"
-              initial="hidden"
-              whileInView="shown"
-              viewport={{ once: true, margin: "-60px 0px" }}
-            >
+            <span key={line} className="block overflow-hidden pb-[0.06em]">
               {i > 0 && " "}
-              <m.span
-                data-reveal
-                className="block"
-                variants={{ hidden: { y: "105%" }, shown: { y: 0 } }}
-                transition={{ duration: 0.9, delay: i * 0.12, ease: EASE_OUT }}
-              >
+              <span data-line data-reveal className="block">
                 {line}
-              </m.span>
-            </m.span>
+              </span>
+            </span>
           ))}
         </h2>
 

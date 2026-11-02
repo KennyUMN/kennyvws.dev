@@ -1,14 +1,28 @@
 "use client";
 
-import { m } from "motion/react";
+import { useRef } from "react";
 import type { Project } from "@/data/projects";
+import { gsap, MOTION_OK, useGSAP } from "@/lib/gsap";
 import { Reveal } from "@/components/ui/Reveal";
 import { TextLink } from "@/components/ui/TextLink";
-import { EASE_OUT } from "@/lib/motion";
+import { EASE_OUT, SETTLE } from "@/lib/motion";
 import { ProjectMeta } from "./ProjectMeta";
 
 export function PipelineFeature({ project }: { project: Project }) {
   const steps = project.approach ?? [];
+  const flowRef = useRef<HTMLOListElement>(null);
+
+  useGSAP(
+    () => {
+      gsap.matchMedia().add(MOTION_OK, () => {
+        gsap
+          .timeline({ scrollTrigger: { trigger: flowRef.current, start: "top 75%", once: true } })
+          .from("[data-rail]", { scaleX: 0, duration: 1.4, ease: EASE_OUT, ...SETTLE })
+          .from("[data-step]", { opacity: 0, y: 12, duration: 0.7, stagger: 0.18, ease: EASE_OUT, ...SETTLE }, 0.25);
+      });
+    },
+    { scope: flowRef },
+  );
 
   return (
     <article className="mt-24 border-t border-rule pt-8 sm:mt-32 sm:pt-10">
@@ -37,30 +51,19 @@ export function PipelineFeature({ project }: { project: Project }) {
       {steps.length > 0 && (
         <figure className="mt-14 sm:mt-20">
           <figcaption className="sr-only">How {project.title} moves data, in order</figcaption>
-          <ol className="relative grid gap-y-10 sm:grid-cols-2 sm:gap-x-8 lg:grid-cols-4">
-            <m.span
+          <ol ref={flowRef} className="relative grid gap-y-10 sm:grid-cols-2 sm:gap-x-8 lg:grid-cols-4">
+            <span
               aria-hidden
+              data-rail
               data-reveal
               className="absolute left-0 right-0 top-[7px] hidden h-px origin-left bg-ink lg:block"
-              initial={{ scaleX: 0 }}
-              whileInView={{ scaleX: 1 }}
-              viewport={{ once: true, amount: 0.6 }}
-              transition={{ duration: 1.4, ease: EASE_OUT }}
             />
-            {steps.map((step, i) => (
-              <m.li
-                key={step.title}
-                data-reveal
-                className="relative flex flex-col gap-3 lg:pt-10"
-                initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.6 }}
-                transition={{ duration: 0.7, delay: 0.25 + i * 0.18, ease: EASE_OUT }}
-              >
+            {steps.map((step) => (
+              <li key={step.title} data-step data-reveal className="relative flex flex-col gap-3 lg:pt-10">
                 <span aria-hidden className="absolute left-0 top-0 hidden size-[15px] border-2 border-ink bg-surface lg:block" />
                 <p className="text-xl font-semibold">{step.title}</p>
                 <p className="max-w-[30ch] leading-relaxed text-ink-2">{step.body}</p>
-              </m.li>
+              </li>
             ))}
           </ol>
         </figure>

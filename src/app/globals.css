@@ -47,8 +47,18 @@
 }
 
 html {
-  scroll-behavior: smooth;
   background: var(--surface);
+}
+
+/* Lenis drives wheel scrolling; CSS smooth scrolling would fight both it and ScrollTrigger's
+   measurements, so in-page anchors glide through Lenis instead. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis [data-lenis-prevent] {
+  overscroll-behavior: contain;
 }
 
 /* Wide display cut of Mona Sans. Width is an axis of the same family, so the
@@ -134,10 +144,6 @@ html.theme-fade *::after {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-
   ::view-transition-new(root),
   ::view-transition-old(root) {
     animation: none;
