@@ -21,8 +21,9 @@ Every number on the page still comes from `src/data`, the copy is unchanged apar
 | Unit tests | 16 | 26 |
 | E2E tests | 30 | 37 |
 | Horizontal overflow, 320 to 1920 | 0 | 0 |
+| WebKit (Safari engine), smoke and motion specs | 28 of 29 (focus trap) | 29 of 29 |
 
-Typecheck, lint and `next build` are clean, with no errors or warnings. The first Lighthouse run against a cold server always scores lower (76 before, 71 after); it is left out of both medians.
+Typecheck, lint and `next build` are clean, with no errors or warnings. The WebKit row ran once against each branch with a temporary config; the committed suite is Chromium only. The first Lighthouse run against a cold server always scores lower (76 before, 71 after); it is left out of both medians.
 
 ## Architecture
 
@@ -89,6 +90,7 @@ Typecheck, lint and `next build` are clean, with no errors or warnings. The firs
 - The chart's scroll range was skewed by its Reveal wrapper's entrance transform, so epoch 50 read as 48. It now measures layout position, as Motion did.
 - Opening the mobile menu couldn't focus the first link, because the sheet's visibility transition starts hidden. The transition now flips visibility instantly on open.
 - Moving to GSAP made content already on screen blink out and replay its entrance after a mid-page reload or a hash link. Fixed with the in-view guard, and a test that fails without it.
+- The mobile menu's focus trap let focus escape in Safari, because WebKit's default Tab order skips links. This predates tonight (it fails on `v2-redesign` too). The trap now moves focus itself on every Tab press.
 - Tailwind v4's `translate-y-*` sets the `translate` property, so transitions listing only `transform` snapped the mobile sheet items and the chart's peak label. Both now transition `translate`.
 
 ## For Kenny to decide

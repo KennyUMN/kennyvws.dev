@@ -50,15 +50,13 @@ export function Navbar() {
         headerRef.current?.querySelectorAll<HTMLElement>("a[href], button:not([disabled])") ?? [],
       ).filter((el) => el.offsetParent !== null);
       if (focusable.length === 0) return;
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
+      // Move focus here on every Tab: Safari's default Tab order skips links, which would walk
+      // focus out of a sheet made of links.
+      e.preventDefault();
+      const n = focusable.length;
+      const at = focusable.indexOf(document.activeElement as HTMLElement);
+      const next = at === -1 ? (e.shiftKey ? n - 1 : 0) : (at + (e.shiftKey ? -1 : 1) + n) % n;
+      focusable[next].focus();
     };
 
     // Crossing into the desktop layout with the sheet open would strand the scroll lock.
