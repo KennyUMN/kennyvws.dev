@@ -139,7 +139,7 @@ function KernelSwitch({ value, onChange }: { value: KernelId; onChange: (k: Kern
       <span id="kernel-label" className="font-mono text-[11px] text-ink-3">
         Kernel
       </span>
-      <div role="group" aria-labelledby="kernel-label" className="grid grid-cols-4 border border-rule sm:flex">
+      <div role="group" aria-labelledby="kernel-label" className="grid grid-cols-2 gap-px border border-rule bg-rule min-[360px]:grid-cols-4 sm:flex">
         {KERNELS.map((k) => (
           <button
             key={k.id}
@@ -147,8 +147,8 @@ function KernelSwitch({ value, onChange }: { value: KernelId; onChange: (k: Kern
             aria-pressed={value === k.id}
             onClick={() => onChange(k.id)}
             className={cn(
-              "min-h-11 px-1 font-mono text-[11px] whitespace-nowrap transition-colors duration-200 sm:px-3 sm:text-[12px] [&:not(:first-child)]:border-l [&:not(:first-child)]:border-rule",
-              value === k.id ? "bg-ink text-surface" : "text-ink-2 hover:bg-surface-raised hover:text-ink",
+              "min-h-11 whitespace-nowrap px-1 font-mono text-[11px] transition-colors duration-200 sm:px-3 sm:text-[12px]",
+              value === k.id ? "bg-ink text-surface" : "bg-surface text-ink-2 hover:bg-surface-raised hover:text-ink",
             )}
           >
             {k.label}
