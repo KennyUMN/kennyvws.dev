@@ -85,3 +85,25 @@ test.describe("narrow screens with motion on", () => {
     }
   });
 });
+
+test.describe("loading partway down the page", () => {
+  test.use({ contextOptions: { reducedMotion: "no-preference" } });
+
+  test("content already on screen never blinks out to play its entrance", async ({ page }) => {
+    await page.goto("/#about");
+    const notAtRest = () =>
+      page.evaluate(() =>
+        [...document.querySelectorAll("#about [data-reveal], #about p, #about li")]
+          .filter((e) => {
+            const r = e.getBoundingClientRect();
+            return r.bottom > 0 && r.top < innerHeight;
+          })
+          .filter((e) => Number(getComputedStyle(e).opacity) < 0.99 || getComputedStyle(e).transform !== "none").length,
+      );
+    // Setup runs in idle time after hydration; sample across that window.
+    for (let i = 0; i < 8; i++) {
+      expect(await notAtRest()).toBe(0);
+      await page.waitForTimeout(150);
+    }
+  });
+});

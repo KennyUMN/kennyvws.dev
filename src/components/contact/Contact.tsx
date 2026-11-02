@@ -8,7 +8,7 @@ import { Reveal } from "@/components/ui/Reveal";
 import { TextLink } from "@/components/ui/TextLink";
 import { gsap, MOTION_OK } from "@/lib/gsap";
 import { useIdleGSAP } from "@/hooks/useIdleGSAP";
-import { EASE_OUT, SETTLE } from "@/lib/motion";
+import { alreadyInView, EASE_OUT, SETTLE } from "@/lib/motion";
 
 const links = [
   { label: "GitHub", href: site.socials.github },
@@ -26,6 +26,7 @@ export function Contact() {
     () => {
       gsap.matchMedia().add(MOTION_OK, () => {
         for (const line of gsap.utils.toArray<HTMLElement>("[data-line]", headingRef.current)) {
+          if (alreadyInView(line)) continue;
           gsap.from(line.querySelectorAll("[data-word]"), {
             yPercent: 115,
             rotate: 7,

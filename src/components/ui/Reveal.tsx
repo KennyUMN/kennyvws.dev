@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { gsap, MOTION_OK } from "@/lib/gsap";
 import { useIdleGSAP } from "@/hooks/useIdleGSAP";
-import { REVEAL_FROM, SETTLE, type RevealRole } from "@/lib/motion";
+import { alreadyInView, REVEAL_FROM, SETTLE, type RevealRole } from "@/lib/motion";
 
 interface RevealProps {
   children: React.ReactNode;
@@ -21,6 +21,7 @@ export function Reveal({ children, delay = 0, variant = "body", className }: Rev
   useIdleGSAP(
     () => {
       gsap.matchMedia().add(MOTION_OK, () => {
+        if (alreadyInView(ref.current!)) return;
         gsap.from(ref.current, {
           ...REVEAL_FROM[variant],
           ...SETTLE,

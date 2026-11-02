@@ -4,7 +4,7 @@ import { useRef } from "react";
 import type { Project } from "@/data/projects";
 import { gsap, MOTION_OK } from "@/lib/gsap";
 import { useIdleGSAP } from "@/hooks/useIdleGSAP";
-import { EASE_OUT, SETTLE } from "@/lib/motion";
+import { alreadyInView, EASE_OUT, SETTLE } from "@/lib/motion";
 
 const SCALE_MAX = 0.7;
 
@@ -14,6 +14,7 @@ export function AblationBars({ ablation }: { ablation: NonNullable<Project["abla
   useIdleGSAP(
     () => {
       gsap.matchMedia().add(MOTION_OK, () => {
+        if (alreadyInView(ref.current!)) return;
         gsap.from("[data-bar]", {
           scaleX: 0,
           duration: 0.9,

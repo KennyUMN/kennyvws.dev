@@ -1,6 +1,6 @@
 # Overnight changelog: motion and interaction pass
 
-Branch `v2-motion`, cut from `v2-redesign`. Eight local commits. Nothing is pushed, merged or deployed.
+Branch `v2-motion`, cut from `v2-redesign`. Local commits only: nothing is pushed, merged or deployed.
 
 ```
 git log --oneline v2-redesign..v2-motion
@@ -14,12 +14,12 @@ Every number on the page still comes from `src/data`, the copy is unchanged apar
 | Check | Before (v2-redesign) | After (v2-motion) |
 |---|---|---|
 | Lighthouse mobile, performance | 95 (median of 5) | 96 (median of 4, range 92 to 96) |
-| Mobile total blocking time | 80 to 130 ms | 10 to 40 ms |
+| Mobile total blocking time | 80 to 130 ms | 10 to 60 ms |
 | Lighthouse desktop, perf / a11y / best practices / SEO | 100 / 100 / n.a. / n.a. | 100 / 100 / 100 / 100 |
 | CLS | 0 | 0 |
 | JS transferred | 228 KB | 226 KB |
 | Unit tests | 16 | 26 |
-| E2E tests | 30 | 36 |
+| E2E tests | 30 | 37 |
 | Horizontal overflow, 320 to 1920 | 0 | 0 |
 
 Typecheck, lint and `next build` are clean, with no errors or warnings. The first Lighthouse run against a cold server always scores lower (76 before, 71 after); it is left out of both medians.
@@ -34,6 +34,7 @@ Typecheck, lint and `next build` are clean, with no errors or warnings. The firs
   - ScrollTrigger re-measures when the page changes height, for example when the table opens.
 - **SSR safety.** All motion lives in client components. Animations are built in `useGSAP` or `useIdleGSAP` and reverted on unmount, and every one branches through `gsap.matchMedia()`.
 - **Idle setup** (`src/hooks/useIdleGSAP.ts`). Everything below the fold builds its triggers after hydration, in idle time. Building them all during hydration made one 359 ms task and pushed mobile performance to 88. This change is why blocking time is now lower than the baseline's.
+- **No blink on mid-page loads.** Motion used to write hidden states into the server HTML; GSAP can't, so content paints visible first. Any entrance whose element is already in or above the viewport when it is built is skipped (`alreadyInView` in `src/lib/motion.ts`). Reloading halfway down, or opening `/#about`, shows content at rest instead of hiding and replaying it.
 
 ## Hero
 
@@ -42,7 +43,7 @@ Typecheck, lint and `next build` are clean, with no errors or warnings. The firs
   - Switching re-scans the lens: the old output wipes away left to right behind an orange scan line.
   - The strip sentence names the kernel that ran and its measured cost, and it is a polite live region.
 - **Spring lens.** Damped spring (stiffness 320, damping ratio 0.78), stepped at a fixed rate so it behaves the same at any frame rate, and clamped to the headline plate.
-- **Entrance.** One GSAP timeline brings in the nav, eyebrow, actions, kernel switch, a drawn rule and the strip, then the status dot pings twice. A head script hides those elements before first paint, so they don't flash, with a 3 s CSS failsafe.
+- **Entrance.** One GSAP timeline brings in the nav, eyebrow, actions, kernel switch, a drawn rule and the strip, then the status dot pings twice. A head script hides those elements before first paint, so they don't flash, with a 3 s CSS failsafe. If hydration arrives after 2.5 s, the entrance is skipped so the failsafe's reveal is never undone.
 
 ## Work
 
@@ -59,7 +60,7 @@ Typecheck, lint and `next build` are clean, with no errors or warnings. The firs
   - The tool-to-stage mapping is `uses` per step in `projects.ts`, read from the repo README, with tests that every tag maps to a stage.
 - **Also built**
   - Each row has a pointer spotlight and a lit stretch of its top rule.
-  - Each row has a mechanism sketch: broker order flow summed into a net line (Bandar Tracker), questions scored on faithfulness and context recall (RAG harness), and a causal mask filling token by token with a growing K and V cache (Tiny Transformer).
+  - Each row has a mechanism sketch: broker summaries read session by session, with accumulation turning into distribution (Bandar Tracker); questions scored on faithfulness and context recall (RAG harness); and a causal mask filling token by token with a growing K and V cache (Tiny Transformer).
   - The sketches play on hover, or once in view on touch.
 
 ## About, contact, footer
@@ -87,6 +88,8 @@ Typecheck, lint and `next build` are clean, with no errors or warnings. The firs
 - Phase 1 caused the nav to lose its background at the very bottom of the page: a ScrollTrigger ending at `"max"` goes inactive there. Fixed, with a test.
 - The chart's scroll range was skewed by its Reveal wrapper's entrance transform, so epoch 50 read as 48. It now measures layout position, as Motion did.
 - Opening the mobile menu couldn't focus the first link, because the sheet's visibility transition starts hidden. The transition now flips visibility instantly on open.
+- Moving to GSAP made content already on screen blink out and replay its entrance after a mid-page reload or a hash link. Fixed with the in-view guard, and a test that fails without it.
+- Tailwind v4's `translate-y-*` sets the `translate` property, so transitions listing only `transform` snapped the mobile sheet items and the chart's peak label. Both now transition `translate`.
 
 ## For Kenny to decide
 
@@ -95,7 +98,6 @@ Typecheck, lint and `next build` are clean, with no errors or warnings. The firs
 - Kernel names and the blur strength (`BLUR_EM` in `SobelHeadline.tsx`) are taste calls.
 - GSAP 3.13+ is free to use, commercial use included, under GSAP's own standard license, not MIT. Lenis is MIT.
 - `npm audit` reports advisories in dev dependencies that predate this run; I didn't touch them.
-- `next-env.d.ts` still shows a local modification. `next dev` and `next build` rewrite it, and it is left out of every commit.
 
 ## How to review
 

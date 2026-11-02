@@ -153,7 +153,7 @@ export function Navbar() {
             <li
               key={item.id}
               data-reveal
-              className="translate-y-4 border-b border-rule opacity-0 transition-[opacity,transform] duration-[450ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-data-[open=true]/sheet:translate-y-0 group-data-[open=true]/sheet:opacity-100"
+              className="translate-y-4 border-b border-rule opacity-0 transition-[opacity,translate] duration-[450ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-data-[open=true]/sheet:translate-y-0 group-data-[open=true]/sheet:opacity-100"
               style={{ transitionDelay: open ? `${40 + i * 50}ms` : "0ms" }}
             >
               <a

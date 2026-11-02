@@ -256,7 +256,7 @@ export function TrainingCurve({ data, source, reference }: TrainingCurveProps) {
           style={{ left: `${xPct(peakIdx)}%`, top: `${yPct(peak.map50)}%` }}
         >
           <span className="absolute size-3 -translate-x-1/2 -translate-y-1/2 scale-0 rounded-full border-2 border-surface bg-accent transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-data-[on=true]/peak:scale-100 motion-reduce:transition-none" />
-          <span className="absolute bottom-3 -translate-x-1/2 translate-y-1 whitespace-nowrap font-mono text-[11px] leading-4 opacity-0 transition-[opacity,transform] duration-500 group-data-[on=true]/peak:translate-y-0 group-data-[on=true]/peak:opacity-100 motion-reduce:transition-none">
+          <span className="absolute bottom-3 -translate-x-1/2 translate-y-1 whitespace-nowrap font-mono text-[11px] leading-4 opacity-0 transition-[opacity,translate] duration-500 group-data-[on=true]/peak:translate-y-0 group-data-[on=true]/peak:opacity-100 motion-reduce:transition-none">
             <span className="block font-semibold text-ink">Peak {fmt(peak.map50)}</span>
             <span className="block text-ink-2">epoch {peak.epoch}</span>
           </span>

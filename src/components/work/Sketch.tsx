@@ -17,7 +17,7 @@ const PITCH = CELL + GAP;
 const hash = (a: number, b: number) => (Math.imul(a * 374761393 + b * 668265263, 1274126177) >>> 0) / 4294967296;
 
 const CAPTIONS: Record<SketchKind, string> = {
-  "order-flow": "Broker flow, read session by session, summed into a net line",
+  "order-flow": "Broker summaries read session by session, accumulation then distribution",
   "eval-grid": "Every answer scored on two metrics, every run",
   "causal-mask": "Causal attention, one token at a time, keys and values cached",
 };

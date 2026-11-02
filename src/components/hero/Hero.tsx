@@ -14,6 +14,9 @@ const lead = projects.find((p) => p.featured && p.ablation);
 
 // The widest stat the sentence can carry, so its cell is sized before the measurement lands.
 const STAT_SIZER = "00.00 megapixels in 000.0 ms";
+// The CSS failsafe reveals the hero chrome at 3 s. Hydrating later than this, the chrome has (nearly)
+// shown already, so the entrance is skipped instead of hiding it and playing it a second time.
+const INTRO_LATE_MS = 2500;
 const ran = (phrase: string, stat: string) => `Your browser just ran ${phrase} over this headline, ${stat}.`;
 
 export function Hero() {
@@ -28,6 +31,10 @@ export function Hero() {
     const mm = gsap.matchMedia();
     mm.add(MOTION_REDUCE, () => root.classList.remove("intro"));
     mm.add(MOTION_OK, () => {
+      if (performance.now() > INTRO_LATE_MS) {
+        root.classList.remove("intro");
+        return;
+      }
       const q = (name: string) => gsap.utils.toArray<HTMLElement>(`[data-intro="${name}"]`);
       const all = gsap.utils.toArray<HTMLElement>("[data-intro]");
       // Hand the hidden state from the pre-paint CSS to inline styles, then let the timeline run.

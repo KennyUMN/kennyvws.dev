@@ -7,7 +7,7 @@ import { Reveal } from "@/components/ui/Reveal";
 import { Section } from "@/components/ui/Section";
 import { gsap, MOTION_OK, SplitText } from "@/lib/gsap";
 import { useIdleGSAP } from "@/hooks/useIdleGSAP";
-import { EASE_OUT, SETTLE } from "@/lib/motion";
+import { alreadyInView, EASE_OUT, SETTLE } from "@/lib/motion";
 
 export function About() {
   const [lead, ...rest] = about.paragraphs;
@@ -17,24 +17,28 @@ export function About() {
   useIdleGSAP(() => {
     gsap.matchMedia().add(MOTION_OK, () => {
       // The lead rises line by line from behind its own mask, re-split if the layout reflows.
-      const split = SplitText.create(leadRef.current, {
-        type: "lines",
-        mask: "lines",
-        linesClass: "about-line",
-        aria: "none",
-        autoSplit: true,
-        onSplit: (self) =>
-          gsap.from(self.lines, {
-            yPercent: 100,
-            duration: 1,
-            stagger: 0.08,
-            ease: EASE_OUT,
-            scrollTrigger: { trigger: leadRef.current, start: "top 80%", once: true },
-          }),
-      });
+      const split = alreadyInView(leadRef.current!)
+        ? null
+        : SplitText.create(leadRef.current, {
+            type: "lines",
+            mask: "lines",
+            linesClass: "about-line",
+            aria: "none",
+            autoSplit: true,
+            onSplit: (self) =>
+              gsap.from(self.lines, {
+                yPercent: 100,
+                duration: 1,
+                stagger: 0.08,
+                ease: EASE_OUT,
+                scrollTrigger: { trigger: leadRef.current, start: "top 80%", once: true },
+              }),
+          });
 
       // Each tool column draws its rule, then its label and tools follow in a short cascade.
-      const columns = gsap.utils.toArray<HTMLElement>("[data-tools]", toolsRef.current);
+      const columns = alreadyInView(toolsRef.current!)
+        ? []
+        : gsap.utils.toArray<HTMLElement>("[data-tools]", toolsRef.current);
       const tl = gsap.timeline({ scrollTrigger: { trigger: toolsRef.current, start: "top 82%", once: true } });
       columns.forEach((col, i) => {
         const at = i * 0.12;
@@ -45,7 +49,7 @@ export function About() {
         );
       });
 
-      return () => split.revert();
+      return () => split?.revert();
     });
   });
 

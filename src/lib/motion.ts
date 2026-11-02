@@ -14,5 +14,10 @@ export const REVEAL_FROM: Record<RevealRole, gsap.TweenVars> = {
   artifact: { opacity: 0, y: 14, scale: 0.985, duration: DUR_SLOW, ease: EASE_SOFT },
 };
 
+/** True when the element already sits in or above the viewport when its entrance is built, as after a
+ *  reload mid-page or a hash link. Its entrance is skipped, so content that has painted never
+ *  blinks out and back in. */
+export const alreadyInView = (el: Element) => el.getBoundingClientRect().top < window.innerHeight;
+
 /** Entrances hand the element back to its stylesheet once they finish. */
 export const SETTLE = { clearProps: "transform,opacity" } as const;

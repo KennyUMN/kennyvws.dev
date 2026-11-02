@@ -6,7 +6,7 @@ import { Reveal } from "@/components/ui/Reveal";
 import { TextLink } from "@/components/ui/TextLink";
 import { gsap, MOTION_OK, ScrollTrigger } from "@/lib/gsap";
 import { useIdleGSAP } from "@/hooks/useIdleGSAP";
-import { EASE_OUT, SETTLE } from "@/lib/motion";
+import { alreadyInView, EASE_OUT, SETTLE } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { ProjectMeta } from "./ProjectMeta";
 
@@ -31,10 +31,12 @@ export function PipelineFeature({ project }: { project: Project }) {
         const { motion, wide } = ctx.conditions as { motion: boolean; wide: boolean };
         if (!motion) return;
         const axis = wide ? "x" : "y";
-        gsap
-          .timeline({ scrollTrigger: { trigger: list, start: "top 75%", once: true } })
-          .from(`[data-rail-ink="${axis}"]`, { [wide ? "scaleX" : "scaleY"]: 0, duration: 1.4, ease: EASE_OUT, ...SETTLE })
-          .from("[data-step]", { opacity: 0, y: 12, duration: 0.7, stagger: 0.18, ease: EASE_OUT, ...SETTLE }, 0.25);
+        if (!alreadyInView(list)) {
+          gsap
+            .timeline({ scrollTrigger: { trigger: list, start: "top 75%", once: true } })
+            .from(`[data-rail-ink="${axis}"]`, { [wide ? "scaleX" : "scaleY"]: 0, duration: 1.4, ease: EASE_OUT, ...SETTLE })
+            .from("[data-step]", { opacity: 0, y: 12, duration: 0.7, stagger: 0.18, ease: EASE_OUT, ...SETTLE }, 0.25);
+        }
 
         // A request pulse runs the rail and lights each stage's node as it arrives.
         const items = gsap.utils.toArray<HTMLElement>("[data-step]", list);
