@@ -4,7 +4,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 ## Project Overview
 
-`kennyvws.dev` is a single-page portfolio built with Next.js App Router, Tailwind CSS v4, `motion` (v12) and `next-themes`. The v2 design (branch `v2-redesign`, decisions in `docs/redesign-v2/`) is an editorial layout in Mona Sans with two computed centerpieces: a live Sobel filter over the hero headline, and a halftone sign-off wordmark sampled out of noise. The work section is driven by the real PPE training log and ablation numbers from the public repo.
+`kennyvws.dev` is a single-page portfolio built with Next.js App Router, Tailwind CSS v4, GSAP (with ScrollTrigger, SplitText and CustomEase), Lenis and `next-themes`. The v2 design (branch `v2-redesign`, decisions in `docs/redesign-v2/`) is an editorial layout in Mona Sans with two computed centerpieces: a live Sobel filter over the hero headline, and a halftone sign-off wordmark sampled out of noise. The work section is driven by the real PPE training log and ablation numbers from the public repo.
 
 ## Key Architecture
 
@@ -18,24 +18,29 @@ All copy and every number live in data files. Components hardcode only section h
 - `posts.ts`: writing drafts, all `href: "#"`, not rendered until published
 
 ### Sections (feature folders under `src/components/`)
-- `hero/Hero.tsx` and `hero/SobelHeadline.tsx`: the H1 is real text; a canvas rasterizes it at the DOM word positions, runs a 3x3 Sobel filter, sweeps an intro scan, then a stride-snapped lens follows the pointer and reports edge density from a summed-area table. Sets `data-state="live"` when settled.
-- `work/`: `CaseStudy` (PPE), `TrainingCurve` (scroll-scrubbed mAP@50 by epoch with a label riding the drawing edge, the supervised-only score as a reference line, crosshair tooltip, table view), `AblationBars`, `PipelineFeature` (FinRAG-ID, the featured LLM project, drawn as its pipeline), `WorkIndex` (the remaining projects; `privateRepo` decides between "Private repository" and "No public repo yet").
-- `about/About.tsx` (quiet heading, lead paragraph, and the Tools list from `skills.ts`), `contact/Contact.tsx`.
-- `contact/Signoff.tsx` in the footer: ink halftone wordmark, the closed-form forward process played backwards on a cosine schedule (no denoiser, so never call it reverse diffusion); scroll progress to the page end is the timestep, the pointer re-noises locally. Sets `data-state="ready"`.
-- `nav/Navbar.tsx` with the mobile sheet (focus trap, scroll lock) and `nav/ThemeToggle.tsx` (circular view-transition wipe).
+- `hero/Hero.tsx` and `hero/SobelHeadline.tsx`: the H1 is real text; a canvas rasterizes it at the DOM word positions, runs a 3x3 Sobel filter, sweeps an intro scan (a GSAP tween), then a stride-snapped lens follows the pointer on a damped spring and reports what the selected kernel measures from a summed-area table. Sets `data-state="live"` when settled. The kernel switch (Sobel, Laplacian, Gaussian blur, edge mask) re-scans the lens; each readout names what it measures (the blur reports mean ink, not edges). Convolutions are pure functions in `hero/kernels.ts`. Hero owns the entrance timeline for nav, eyebrow, actions and strip (`data-intro`); the H1 never moves or hides.
+- `work/`: `CaseStudy` (PPE), `TrainingCurve` (scroll-scrubbed mAP@50 by epoch with a label riding the drawing edge, the supervised-only score as a reference line, a bracket from it to the peak once reached, a gliding crosshair that also works by touch drag, a keyboard slider role, table view), `AblationBars`, `ApproachSteps` (method steps on a scroll-drawn rail), `PipelineFeature` (FinRAG-ID drawn as its pipeline with a request packet; tool pills point at the stages in each step's `uses`), `WorkIndex` (the remaining projects with a pointer spotlight; `privateRepo` decides between "Private repository" and "No public repo yet") and `Sketch` (a mechanism drawing per index row, labelled Schematic, never data).
+- `about/About.tsx` (quiet heading, a lead that rises line by line through SplitText masks, and the Tools matrix from `skills.ts`), `contact/Contact.tsx` (the closing statement rises word by word; email and social links are `Magnetic`).
+- `contact/Signoff.tsx` in the footer: ink halftone wordmark, the closed-form forward process played backwards on a cosine schedule (no denoiser, so never call it reverse diffusion); scroll progress to the page end sets the target timestep, the drawn timestep eases toward it, the pointer re-noises locally. Sets `data-state="ready"`.
+- `nav/Navbar.tsx` with the mobile sheet (focus trap, scroll lock, CSS transitions) and `nav/ThemeToggle.tsx` (circular view-transition wipe).
 
 ### UI Primitives (`src/components/ui/`)
 - `Section`: section shell with id, `aria-labelledby`, wide display heading with a masked line reveal, or a small mono label with `quiet`
-- `Reveal`: `m.div` with `whileInView` and role-based variants from `src/lib/motion.ts`
+- `Reveal`: a div that enters once on scroll with the role-based presets in `src/lib/motion.ts`
 - `ButtonLink`: `accent`, `ink` and `outline` variants, sharp corners
 - `TextLink`: standalone text link with a 44px hit area and the drawn underline
+- `Magnetic`: pulls its child toward the pointer and springs back (fine pointers, motion allowed)
 
 ### Motion
-- `src/components/MotionProvider.tsx` wraps the app in `MotionConfig reducedMotion="user"` and `LazyMotion strict` with async `domAnimation` features (`src/lib/motionFeatures.ts`). Use `m.*`, never `motion.*`; strict mode throws on `motion.*`.
-- Scroll-linked values use `useScroll` and motion values, never a window scroll listener. The chart's progress is fed after mount so the server and first client render agree.
+- `src/lib/gsap.ts` registers ScrollTrigger, SplitText, CustomEase and `useGSAP` once and defines the site eases (`site-out`, `site-soft`, the same curves as the CSS). Import GSAP from there, never from `gsap` directly.
+- `src/components/SmoothScroll.tsx` runs Lenis on `gsap.ticker` and feeds `ScrollTrigger.update`. Reduced motion keeps native scroll. Same-page anchors glide and push the hash; keyboard activation and the skip link stay native. ScrollTrigger re-measures when the body changes height. Nested scrollers need `data-lenis-prevent`. No CSS `scroll-behavior: smooth`.
+- Above the fold use `useGSAP`; below the fold use `useIdleGSAP` (`src/hooks/useIdleGSAP.ts`), which builds after hydration in idle time. Building everything during hydration cost a 359ms long task.
+- Branch every animation through `gsap.matchMedia()` with `MOTION_OK` / `MOTION_REDUCE`; hover effects also need `FINE_POINTER`. Entrances spread `SETTLE` so inline styles are cleared when they finish.
+- Scroll-linked values come from ScrollTrigger, never a window scroll listener. Measure scroll ranges with `layoutTop` (offsetTop) when an ancestor has an entrance transform. Apply scroll state after mount so the server and first client render agree.
+- A trigger that ends at `"max"` turns inactive at the very bottom of the page; read `self.scroll()` instead when a state must hold there.
 
 ### Styling
-- `src/app/globals.css`: tokens (`--surface`, `--surface-raised`, `--rule`, `--ink`, `--ink-2`, `--ink-3`, `--accent`, `--accent-ink`) for light and `.dark`, `@theme inline`, `.font-wide` (Mona Sans at 125% width), `link-draw`, the theme wipe, reduced-motion overrides.
+- `src/app/globals.css`: tokens (`--surface`, `--surface-raised`, `--rule`, `--ink`, `--ink-2`, `--ink-3`, `--accent`, `--accent-ink`) for light and `.dark`, `@theme inline`, `.font-wide` (Mona Sans at 125% width), `link-draw`, the theme wipe, the `html.intro` pre-paint state for the hero entrance (with a 3s failsafe), Lenis rules, reduced-motion overrides.
 - Fonts: Mona Sans (variable weight and width) for everything, Martian Mono for measurements and labels.
 
 ## Commands
@@ -69,6 +74,6 @@ Run a single unit test: `npx vitest run tests/unit/data.test.ts`
 
 ## Testing
 
-- Unit tests (Vitest): `tests/unit/` cover data integrity (five projects, two featured, metrics carry a source, no unsupported claims, PPE numbers agree with the imported training log) and utils.
-- E2E tests (Playwright): `tests/e2e/smoke.spec.ts` (H1, lens, nav, résumé, theme, work list, chart table, contact, mobile focus trap, tap targets, no horizontal scroll from 320 to 1920), `motion.spec.ts` (scroll-scrubbed epochs and sign-off timestep, with and without reduced motion), `screenshots.spec.ts` (full-page captures at 320, 768, 1024, 1440 in both themes, written to the git-ignored `screenshots/`).
+- Unit tests (Vitest): `tests/unit/` cover data integrity (five projects, two featured, metrics carry a source, no unsupported claims, PPE numbers agree with the imported training log, pipeline `uses` name real tags, index rows carry sketches), the hero kernels and utils.
+- E2E tests (Playwright): `tests/e2e/smoke.spec.ts` (H1, lens, kernel switch, entrance, nav and its backing at the page end, résumé, theme, work list, chart table and keyboard slider, FinRAG tool pills, sketches, contact, mobile focus trap, tap targets, no horizontal scroll from 320 to 1920), `motion.spec.ts` (scroll-scrubbed epochs and sign-off timestep, with and without reduced motion), `screenshots.spec.ts` (full-page captures at 320, 768, 1024, 1440 in both themes, written to the git-ignored `screenshots/`).
 - E2E base URL: `http://localhost:3100` (the config builds and starts the server itself).

@@ -1,7 +1,7 @@
 # kennyvws.dev
 
 Personal portfolio: single page, Next.js App Router, Tailwind CSS v4,
-Motion, next-themes. The v2 design pairs an editorial Mona Sans layout with two
+GSAP with Lenis smooth scrolling, next-themes. The v2 design pairs an editorial Mona Sans layout with two
 computed centerpieces (a live Sobel filter over the hero headline and a halftone
 sign-off sampled out of noise) and a work section drawn from the real PPE
 training log. Design decisions: `docs/redesign-v2/`.
@@ -15,7 +15,7 @@ training log. Design decisions: `docs/redesign-v2/`.
 
     npm run typecheck
     npm run lint
-    npm run test       # Vitest — data integrity + utils
+    npm run test       # Vitest — data integrity, hero kernels, utils
     npm run e2e        # Playwright — behavior + breakpoint screenshots
     npm run build
 
