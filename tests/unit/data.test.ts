@@ -108,3 +108,22 @@ test("the ablation sentences quote the ablation rows", () => {
     expect(ablation.claim).toContain(quoted);
   }
 });
+
+test("every tool a pipeline step names is one of that project's tags", () => {
+  // A tag points at the stages it runs in; a step naming an untagged tool would leave a dead pill.
+  for (const p of projects) {
+    for (const step of p.approach ?? []) {
+      for (const tool of step.uses ?? []) expect(p.tags).toContain(tool);
+    }
+  }
+});
+
+test("FinRAG-ID maps every tag to at least one pipeline stage", () => {
+  const finrag = projects.find((p) => p.title === "FinRAG-ID")!;
+  const used = new Set(finrag.approach!.flatMap((s) => s.uses ?? []));
+  for (const tag of finrag.tags) expect(used).toContain(tag);
+});
+
+test("every project in the index carries a mechanism sketch", () => {
+  for (const p of projects.filter((p) => !p.featured)) expect(p.sketch).toBeTruthy();
+});

@@ -27,8 +27,11 @@ export interface Project {
   /** Which artifact the metrics came from. Two public artifacts report
    *  different runs, so the page has to say which one it is quoting. */
   metricsSource?: string;
-  /** How it works, in order. Each step restates the project's own README or description. */
-  approach?: { title: string; body: string }[];
+  /** How it works, in order. Each step restates the project's own README or description.
+   *  `uses` names the project tags that run in that step, so a tag can point at its stage. */
+  approach?: { title: string; body: string; uses?: string[] }[];
+  /** A small mechanism drawing beside the row. It illustrates how the project works and carries no data. */
+  sketch?: "order-flow" | "eval-grid" | "causal-mask";
   /** A controlled comparison read from the project's own published chart. */
   ablation?: {
     metric: string;
@@ -101,11 +104,30 @@ export const projects: Project[] = [
     featured: true,
     github: "https://github.com/KennyUMN/finrag-id",
     // Restated from the repo README (architecture, design decisions, evaluation).
+    // `uses` follows the README's structure: LlamaIndex chunks (SentenceSplitter), retrieves
+    // (QueryFusionRetriever) and orchestrates the engine; docker-compose runs qdrant, ollama, api and ui;
+    // eval/run_ragas.py runs outside the compose stack.
     approach: [
-      { title: "Ingest", body: "pdfplumber pages with metadata, split into sentence chunks." },
-      { title: "Retrieve", body: "Sastrawi BM25 and BGE-M3 dense search over Qdrant, fused by reciprocal rank fusion." },
-      { title: "Answer", body: "Llama 3.1 8B on Ollama, OpenRouter when Ollama is down, sources tagged [S1] to [Sn]." },
-      { title: "Evaluate", body: "RAGAS faithfulness, answer relevancy and context precision, plus latency p50 and p95." },
+      {
+        title: "Ingest",
+        body: "pdfplumber pages with metadata, split into sentence chunks.",
+        uses: ["LlamaIndex", "Docker Compose"],
+      },
+      {
+        title: "Retrieve",
+        body: "Sastrawi BM25 and BGE-M3 dense search over Qdrant, fused by reciprocal rank fusion.",
+        uses: ["LlamaIndex", "Qdrant", "BGE-M3", "Docker Compose"],
+      },
+      {
+        title: "Answer",
+        body: "Llama 3.1 8B on Ollama, OpenRouter when Ollama is down, sources tagged [S1] to [Sn].",
+        uses: ["LlamaIndex", "Ollama", "Docker Compose"],
+      },
+      {
+        title: "Evaluate",
+        body: "RAGAS faithfulness, answer relevancy and context precision, plus latency p50 and p95.",
+        uses: ["RAGAS"],
+      },
     ],
   },
   {
@@ -118,6 +140,7 @@ export const projects: Project[] = [
     year: "2025",
     status: "Active",
     privateRepo: true,
+    sketch: "order-flow",
     // Restated from the description above; no step claims more than it says.
     approach: [
       { title: "Ingest", body: "KSEI ownership data and broker summaries." },
@@ -136,6 +159,7 @@ export const projects: Project[] = [
     tags: ["LlamaIndex", "RAGAS", "Ollama", "Evaluation"],
     year: "2025",
     status: "Active",
+    sketch: "eval-grid",
     // No public repo yet.
   },
   {
@@ -147,6 +171,7 @@ export const projects: Project[] = [
     tags: ["PyTorch", "Transformers", "Tokenizers"],
     year: "2024",
     status: "Complete",
+    sketch: "causal-mask",
     // No public repo yet.
   },
 ];

@@ -3,6 +3,7 @@ import { ppeTraining } from "@/data/ppeTraining";
 import { Reveal } from "@/components/ui/Reveal";
 import { TextLink } from "@/components/ui/TextLink";
 import { AblationBars } from "./AblationBars";
+import { ApproachSteps } from "./ApproachSteps";
 import { ProjectMeta } from "./ProjectMeta";
 import { TrainingCurve } from "./TrainingCurve";
 
@@ -49,7 +50,6 @@ export function CaseStudy({ project }: { project: Project }) {
         />
       </Reveal>
 
-
       <div className="mt-16 grid gap-y-14 sm:mt-20 lg:grid-cols-12 lg:gap-x-12">
         {ablation && gain && (
           <Reveal className="lg:col-span-6">
@@ -67,14 +67,7 @@ export function CaseStudy({ project }: { project: Project }) {
         {approach.length > 0 && (
           <Reveal delay={0.1} className="lg:col-span-6 lg:col-start-7">
             <h4 className="font-mono text-[12px] text-ink-2">How it works</h4>
-            <ol className="mt-6 flex flex-col">
-              {approach.map((step) => (
-                <li key={step.title} className="grid gap-x-6 border-t border-rule py-5 first:border-t-0 first:pt-0 sm:grid-cols-[8rem_1fr]">
-                  <p className="text-lg font-semibold">{step.title}</p>
-                  <p className="leading-relaxed text-ink-2">{step.body}</p>
-                </li>
-              ))}
-            </ol>
+            <ApproachSteps steps={approach} />
           </Reveal>
         )}
       </div>

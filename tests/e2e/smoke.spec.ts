@@ -94,6 +94,40 @@ test("the training curve has a full table view of the real log", async ({ page }
   await expect(work.locator("table tbody tr").last()).toContainText("0.614");
 });
 
+test("the training curve is a keyboard slider over the real log", async ({ page }) => {
+  await page.goto("/");
+  const slider = page.locator("#work").getByRole("slider", { name: "Training epoch" });
+  await slider.focus();
+  await expect(slider).toHaveAttribute("aria-valuenow", "50");
+  await page.keyboard.press("PageDown");
+  await expect(slider).toHaveAttribute("aria-valuenow", "40");
+  // Epoch 40 is the best epoch of the log, the one the ablation quotes.
+  await expect(slider).toHaveAttribute("aria-valuetext", /^Epoch 40: mAP@50 0\.621,/);
+  await page.keyboard.press("Home");
+  await expect(slider).toHaveAttribute("aria-valuenow", "1");
+});
+
+test("a FinRAG-ID tool points at the stages it runs in", async ({ page }) => {
+  await page.goto("/");
+  const finrag = page.locator("article", { hasText: "FinRAG-ID" });
+  const ragas = finrag.getByRole("button", { name: /^RAGAS\s*, used in Evaluate$/ });
+  await ragas.click();
+  await expect(ragas).toHaveAttribute("aria-pressed", "true");
+  await expect(finrag.locator('[data-step][data-state="on"]')).toHaveText([/Evaluate/]);
+  await expect(finrag.locator('[data-step][data-state="dim"]')).toHaveCount(3);
+  await ragas.click();
+  await expect(ragas).toHaveAttribute("aria-pressed", "false");
+  // Unpinned, the stages clear once the tool is neither hovered nor focused.
+  await page.mouse.move(0, 0);
+  await ragas.blur();
+  await expect(finrag.locator('[data-step][data-state="idle"]')).toHaveCount(4);
+});
+
+test("every index sketch says it is a schematic", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator("#work figcaption", { hasText: /^Schematic · / })).toHaveCount(3);
+});
+
 test("the page closes with the POV statement and one email action", async ({ page }) => {
   await page.goto("/");
   const contact = page.locator("#contact");
