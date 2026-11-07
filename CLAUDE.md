@@ -43,9 +43,14 @@ All copy and every number live in data files. Components hardcode only section h
 - `src/app/globals.css`: tokens (`--surface`, `--surface-raised`, `--rule`, `--ink`, `--ink-2`, `--ink-3`, `--accent`, `--accent-ink`) for light and `.dark`, `@theme inline`, `.font-wide` (Mona Sans at 125% width), `link-draw`, the theme wipe, the `html.intro` pre-paint state for the hero entrance (with a 3s failsafe), Lenis rules, reduced-motion overrides.
 - Fonts: Mona Sans (variable weight and width) for everything, Martian Mono for measurements and labels.
 
+## Verify
+
+Run `npm run check` (typecheck, lint, unit tests) before calling any change done, and show its output. Also run `npm run e2e` when a change touches pages, animation, or interaction. When a mistake repeats, add a test or lint rule that catches it instead of another line here.
+
 ## Commands
 
 ```bash
+npm run check      # typecheck + lint + unit tests; must pass before "done"
 npm run dev        # dev server on :3000
 npm run build      # production build
 npm run start      # start production server on :3000
