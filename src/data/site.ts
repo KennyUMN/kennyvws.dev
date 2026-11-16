@@ -1,10 +1,10 @@
 export const site = {
   name: "Kenny",
-  role: "AI Engineer · Computer Vision & LLM Systems",
-  title: "AI engineer",
+  role: "AI / ML Engineer · LLM Systems & Applied ML",
+  title: "AI / ML engineer",
   location: "Tangerang, Indonesia",
   pitch:
-    "I build computer vision and LLM systems, from the training loop to the server that keeps them running.",
+    "I build machine learning and LLM systems, from the training loop to the server that keeps them running.",
   url: "https://kennyvws-dev.vercel.app",
   email: "kennyvws1@gmail.com",
   resume: "/resume.pdf",
@@ -24,7 +24,7 @@ export const about = {
 
 export const contact = {
   framing:
-    "Open to AI Engineer roles, internships, and research collaborations.",
+    "Open to AI and ML engineer roles, internships, and research collaborations.",
   closing: "Clean the data. Fight the training run. Ship the server.",
-  invite: "Hiring an AI engineer or intern, or looking for a research collaborator? Write to me.",
+  invite: "Hiring an AI or ML engineer or intern, or looking for a research collaborator? Write to me.",
 } as const;

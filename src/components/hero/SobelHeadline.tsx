@@ -209,8 +209,8 @@ export function SobelHeadline({ id, text, kernel, className, onMeasured }: Sobel
       const a = new Uint8Array(g.W * g.H);
       for (let i = 0; i < a.length; i++) a[i] = px[i * 4 + 3];
 
-      // Rest position: the window opens one stride left of "vision", so the first frame shows the word whole.
-      const v = words.find((wd) => wd.t.toLowerCase().startsWith("vision")) ?? words[0];
+      // Rest position: the window opens one stride left of "learning", so the first frame shows the word whole.
+      const v = words.find((wd) => wd.t.toLowerCase().startsWith("learning")) ?? words[0];
       const line = Math.floor((v.r.top + ascent - pr.top - g.m) / g.LH);
       g.rest = { x: v.r.left - pr.left - STRIDE + g.lw / 2, y: g.m + line * g.LH + g.lh / 2 };
       return a;
@@ -479,7 +479,16 @@ export function SobelHeadline({ id, text, kernel, className, onMeasured }: Sobel
     }
     apiRef.current = { setKernel };
 
-    const onMove = (e: PointerEvent) => e.pointerType !== "touch" && aimAt(e);
+    // Scrolling under a still pointer fires moves at unchanged client coordinates. Those are
+    // ignored, so the window stays on its words instead of hopping lines as the page passes.
+    let lastX = NaN;
+    let lastY = NaN;
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerType === "touch" || (e.clientX === lastX && e.clientY === lastY)) return;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      aimAt(e);
+    };
     const onVisibility = () => {
       if (!document.hidden) {
         last = 0;

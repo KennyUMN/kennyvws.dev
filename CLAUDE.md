@@ -79,6 +79,6 @@ Run a single unit test: `npx vitest run tests/unit/data.test.ts`
 
 ## Testing
 
-- Unit tests (Vitest): `tests/unit/` cover data integrity (five projects, two featured, metrics carry a source, no unsupported claims, PPE numbers agree with the imported training log, pipeline `uses` name real tags, index rows carry sketches), the hero kernels and utils.
+- Unit tests (Vitest): `tests/unit/` cover data integrity (seven projects, two featured, metrics carry a source, no unsupported claims, PPE numbers agree with the imported training log, pipeline `uses` name real tags, index rows carry sketches), the hero kernels and utils.
 - E2E tests (Playwright): `tests/e2e/smoke.spec.ts` (H1, lens, kernel switch, entrance, nav and its backing at the page end, résumé, theme, work list, chart table and keyboard slider, FinRAG tool pills, sketches, contact, mobile focus trap, tap targets, no horizontal scroll from 320 to 1920), `motion.spec.ts` (scroll-scrubbed epochs and sign-off timestep, with and without reduced motion), `screenshots.spec.ts` (full-page captures at 320, 768, 1024, 1440 in both themes, written to the git-ignored `screenshots/`).
 - E2E base URL: `http://localhost:3100` (the config builds and starts the server itself).

@@ -31,7 +31,7 @@ export interface Project {
    *  `uses` names the project tags that run in that step, so a tag can point at its stage. */
   approach?: { title: string; body: string; uses?: string[] }[];
   /** A small mechanism drawing beside the row. It illustrates how the project works and carries no data. */
-  sketch?: "order-flow" | "eval-grid" | "causal-mask";
+  sketch?: "agent-loop" | "rank-fusion" | "order-flow" | "eval-grid" | "causal-mask";
   /** A controlled comparison read from the project's own published chart. */
   ablation?: {
     metric: string;
@@ -129,6 +129,32 @@ export const projects: Project[] = [
         uses: ["RAGAS"],
       },
     ],
+  },
+  {
+    title: "Forge",
+    blurb: "An agentic coding CLI, written from scratch in TypeScript.",
+    description:
+      "Forge is a kernel first and a CLI second. The agent loop, session store, permission gate, tool registry and provider abstraction are a headless library, and the CLI is one consumer of it. It runs on Anthropic, OpenRouter or any OpenAI-compatible endpoint such as Ollama, loads MCP servers as tools, and can hold a headless run to step, token and cost limits.",
+    category: "LLM / Agents",
+    tags: ["TypeScript", "Node.js", "Agent Loop", "MCP", "OpenRouter"],
+    year: "2026",
+    status: "Early",
+    github: "https://github.com/KennyUMN/forge",
+    sketch: "agent-loop",
+    // Restated from the repo README, which calls the status early.
+  },
+  {
+    title: "memory-core",
+    blurb: "One long-term memory shared by every AI coding agent I use.",
+    // Restated from the repo README (intro, hybrid retrieval, per-agent auth).
+    description:
+      "A server that stores facts, decisions and runbooks, so Claude Code, Codex and Antigravity read and write the same memory over MCP or a REST API. Recall fuses SQLite FTS5 keyword search with dense embeddings by reciprocal rank fusion, and falls back to keyword search when the embedding service is down. Each agent gets its own token and usage log.",
+    category: "LLM / Agents",
+    tags: ["Python", "FastAPI", "MCP", "SQLite FTS5", "Hybrid Retrieval"],
+    year: "2026",
+    status: "Active",
+    github: "https://github.com/KennyUMN/memory-core",
+    sketch: "rank-fusion",
   },
   {
     title: "Bandar Tracker",

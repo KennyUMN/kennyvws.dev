@@ -1,11 +1,11 @@
 import { expect, test } from "@playwright/test";
-import { site } from "../../src/data/site";
+import { contact, site } from "../../src/data/site";
 import { projects } from "../../src/data/projects";
 
 test("hero H1 is the pitch from site data", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(site.pitch);
-  await expect(page.getByText("Open to AI Engineer roles").first()).toBeVisible();
+  await expect(page.getByText(contact.framing).first()).toBeVisible();
 });
 
 test("the hero lens runs a real edge filter over the headline and follows the pointer", async ({ page }) => {
@@ -23,6 +23,25 @@ test("the hero lens runs a real edge filter over the headline and follows the po
   const before = await lens.evaluate((el) => getComputedStyle(el).transform);
   await page.mouse.move(box.x + box.width * 0.2, box.y + box.height * 0.85, { steps: 6 });
   await expect.poll(() => lens.evaluate((el) => getComputedStyle(el).transform)).not.toBe(before);
+});
+
+test("scrolling under a still pointer leaves the hero lens on its words", async ({ page }) => {
+  await page.goto("/");
+  const headline = page.getByTestId("sobel-headline");
+  await expect(headline).toHaveAttribute("data-state", "live", { timeout: 15_000 });
+  const box = (await page.getByRole("heading", { level: 1 }).boundingBox())!;
+  const lens = headline.getByText(/% edge px/).locator("xpath=..");
+  const at = { x: Math.round(box.x + box.width * 0.5), y: Math.round(box.y + box.height * 0.15) };
+  await page.mouse.move(at.x, at.y, { steps: 4 });
+  await page.waitForTimeout(600);
+  const settled = await lens.evaluate((el) => el.style.transform);
+
+  // The page moves the last line under the pointer. Browsers then fire a move at the same client point.
+  await page.mouse.wheel(0, box.height * 0.6);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(box.height * 0.5);
+  await headline.dispatchEvent("pointermove", { clientX: at.x, clientY: at.y, pointerType: "mouse", bubbles: true });
+  await page.waitForTimeout(400);
+  expect(await lens.evaluate((el) => el.style.transform)).toBe(settled);
 });
 
 test("the kernel switch runs a different filter and the readout names what it measures", async ({ page }) => {
@@ -133,7 +152,7 @@ test("a FinRAG-ID tool points at the stages it runs in", async ({ page }) => {
 
 test("every index sketch says it is a schematic", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator("#work figcaption", { hasText: /^Schematic · / })).toHaveCount(3);
+  await expect(page.locator("#work figcaption", { hasText: /^Schematic · / })).toHaveCount(5);
 });
 
 test("the page closes with the POV statement and one email action", async ({ page }) => {

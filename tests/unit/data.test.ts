@@ -4,8 +4,8 @@ import { categories, projects } from "@/data/projects";
 import { posts } from "@/data/posts";
 import { navItems, sectionIds } from "@/data/nav";
 
-test("there are exactly five projects", () => {
-  expect(projects).toHaveLength(5);
+test("there are exactly seven projects", () => {
+  expect(projects).toHaveLength(7);
 });
 
 test("every project link points at its own repo slug, never the bare profile", () => {

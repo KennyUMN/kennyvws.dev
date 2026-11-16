@@ -20,10 +20,10 @@ export const skillGroups: SkillGroup[] = [
   },
   {
     category: "LLM / Applied AI",
-    items: ["Hugging Face", "LangChain", "LlamaIndex", "Ollama", "FastAPI", "RAGAS"],
+    items: ["Hugging Face", "LangChain", "LlamaIndex", "Ollama", "MCP", "FastAPI", "RAGAS"],
   },
   {
     category: "Infra / MLOps",
-    items: ["Docker", "Linux", "GitHub Actions", "Weights & Biases", "PostgreSQL", "Ubuntu"],
+    items: ["Docker", "Linux", "GitHub Actions", "Weights & Biases", "PostgreSQL", "Qdrant", "Ubuntu"],
   },
 ];

@@ -12,11 +12,17 @@ const CELL = 9;
 const EVAL_X = 104;
 const GAP = 3;
 const PITCH = CELL + GAP;
+const FUSE_COLS = 12;
+const FUSE_ROWS = ["BM25", "dense", "fused"];
+// Room for the row labels in the retrieval sketch.
+const FUSE_X = 44;
 
 // Integer hash in [0, 1). Pure integer math, so the server and every browser draw the same pattern.
 const hash = (a: number, b: number) => (Math.imul(a * 374761393 + b * 668265263, 1274126177) >>> 0) / 4294967296;
 
 const CAPTIONS: Record<SketchKind, string> = {
+  "agent-loop": "Each step asks the model, passes the permission gate, then runs a tool",
+  "rank-fusion": "Keyword hits and embedding hits, fused into one score per memory",
   "order-flow": "Broker summaries read session by session, accumulation then distribution",
   "eval-grid": "Every answer scored on two metrics, every run",
   "causal-mask": "Causal attention, one token at a time, keys and values cached",
@@ -65,6 +71,8 @@ export function Sketch({ kind, active }: { kind: SketchKind; active: boolean }) 
         height={VIEW[kind].h}
         className="max-w-full overflow-visible text-ink-3 transition-colors duration-300 group-hover/row:text-ink"
       >
+        {kind === "agent-loop" && <AgentLoop />}
+        {kind === "rank-fusion" && <RankFusion />}
         {kind === "order-flow" && <OrderFlow />}
         {kind === "eval-grid" && <EvalGrid />}
         {kind === "causal-mask" && <CausalMask />}
@@ -77,10 +85,80 @@ export function Sketch({ kind, active }: { kind: SketchKind; active: boolean }) 
 }
 
 const VIEW: Record<SketchKind, { w: number; h: number }> = {
+  "agent-loop": { w: FUSE_X + FUSE_COLS * PITCH - GAP, h: 3 * PITCH - GAP },
+  "rank-fusion": { w: FUSE_X + FUSE_COLS * PITCH - GAP, h: 3 * PITCH - GAP },
   "order-flow": { w: 14 * PITCH - GAP, h: 4 * PITCH + 30 },
   "eval-grid": { w: EVAL_X + 12 * PITCH - GAP, h: 2 * PITCH + 14 },
   "causal-mask": { w: 8 * PITCH + 52, h: 8 * PITCH - GAP },
 };
+
+// Agent steps in columns: the model proposes a call, the gate allows or stops it, an allowed call runs.
+const LOOP_ROWS = ["model", "gate", "tool"];
+const gateAllows = (c: number) => hash(c + 5, 11) < 0.75;
+
+function AgentLoop() {
+  return (
+    <>
+      {LOOP_ROWS.map((label, r) => (
+        <text key={label} x={0} y={r * PITCH + CELL - 1} fontSize={9} className="font-mono" fill="currentColor">
+          {label}
+        </text>
+      ))}
+      {Array.from({ length: FUSE_COLS }, (_, c) =>
+        LOOP_ROWS.map((label, r) =>
+          r === 0 || gateAllows(c) ? (
+            <rect key={`${c}-${label}`} data-col={c} data-stage={r} x={FUSE_X + c * PITCH} y={r * PITCH} width={CELL} height={CELL} fill="currentColor" />
+          ) : (
+            <rect
+              key={`${c}-${label}`}
+              x={FUSE_X + c * PITCH + 0.5}
+              y={r * PITCH + 0.5}
+              width={CELL - 1}
+              height={CELL - 1}
+              fill="none"
+              stroke="currentColor"
+              strokeOpacity={0.3}
+            />
+          ),
+        ),
+      )}
+    </>
+  );
+}
+
+// Memories in columns: a keyword row, an embedding row, and the fused row that is darker where both agree.
+const fuseHit = (c: number, r: number) => hash(c + 3, r + 7) < 0.45;
+
+function RankFusion() {
+  return (
+    <>
+      {FUSE_ROWS.map((label, r) => (
+        <text key={label} x={0} y={r * PITCH + CELL - 1} fontSize={9} className="font-mono" fill="currentColor">
+          {label}
+        </text>
+      ))}
+      {Array.from({ length: FUSE_COLS }, (_, c) => {
+        const hits = [fuseHit(c, 0), fuseHit(c, 1)];
+        const score = hits.filter(Boolean).length / hits.length;
+        return [...hits.map(Number), score].map((v, r) => (
+          <rect
+            key={`${c}-${r}`}
+            data-col={c}
+            {...(r === hits.length ? { "data-fused": "" } : { "data-hit": "" })}
+            x={FUSE_X + c * PITCH + 0.5}
+            y={r * PITCH + 0.5}
+            width={CELL - 1}
+            height={CELL - 1}
+            fill={v ? "currentColor" : "none"}
+            fillOpacity={v || 1}
+            stroke="currentColor"
+            strokeOpacity={0.45}
+          />
+        ));
+      })}
+    </>
+  );
+}
 
 // Brokers in rows, sessions in columns: mostly buying early (accumulation), mostly selling late.
 const FLOW_COLS = 14;
@@ -191,7 +269,14 @@ function CausalMask() {
 function build(kind: SketchKind, svg: SVGSVGElement): gsap.core.Timeline {
   const q = (sel: string) => gsap.utils.toArray<SVGElement>(sel, svg);
   const tl = gsap.timeline({ paused: true });
-  if (kind === "order-flow") {
+  if (kind === "agent-loop") {
+    const byStep = (_: number, el: SVGElement) => Number(el.dataset.col) * 0.1 + Number(el.dataset.stage) * 0.04;
+    tl.fromTo(q("[data-stage]"), { opacity: 0.12 }, { opacity: 1, duration: 0.2, stagger: byStep }, 0);
+  } else if (kind === "rank-fusion") {
+    const byCol = (_: number, el: SVGElement) => Number(el.dataset.col) * 0.08;
+    tl.fromTo(q("[data-hit]"), { opacity: 0.12 }, { opacity: 1, duration: 0.25, stagger: byCol }, 0)
+      .fromTo(q("[data-fused]"), { opacity: 0.12 }, { opacity: 1, duration: 0.25, stagger: byCol }, 0.3);
+  } else if (kind === "order-flow") {
     const span = FLOW_COLS * PITCH - GAP;
     tl.fromTo(q("[data-col]"), { opacity: 0.12 }, { opacity: 1, duration: 0.25, stagger: (i, el) => Number(el.dataset.col) * 0.09 }, 0)
       .fromTo(q("[data-net]"), { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: FLOW_COLS * 0.09 + 0.25, ease: "none" }, 0)
